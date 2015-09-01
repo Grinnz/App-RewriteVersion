@@ -255,8 +255,13 @@ L<App::RewriteVersion> is a tool for managing Perl module versions in a
 distribution. It is heavily based on the L<Dist::Zilla> plugin
 L<Dist::Zilla::Plugin::RewriteVersion>. Similarly to that plugin, the C<V>
 environment variable can be used to override the version detected from the main
-module. Existing version assignments and new versions must be parseable with
-the same rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
+module.
+
+Existing version assignments and new versions must be parseable with the same
+rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to
+say, they should either be a decimal number with a single decimal point, or a
+tuple version with a leading C<v> and at least 3 segments separated by decimal
+points. Version assignments should be in the form C<our $VERSION = '...';>.
 
 See L<perl-rewrite-version> and L<perl-bump-version> for details on
 command-line usage.
@@ -380,5 +385,4 @@ This is free software, licensed under:
 
 =head1 SEE ALSO
 
-L<perl-rewrite-version>, L<perl-bump-version>,
 L<Dist::Zilla::Plugin::RewriteVersion>, L<Version::Next>

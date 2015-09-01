@@ -57,12 +57,17 @@ perl-bump-version - A tool to bump your Perl module versions
 L<perl-bump-version> is a command-line tool using L<App::RewriteVersion> to
 bump Perl module versions in a distribution. A distribution directory can be
 passed as an argument, otherwise the current working directory is used. The
-main module's version is read, bumped, and then used to update the version in
-all perl files in the distribution with a version assignment. The C<V>
-environment variable can also be used to set the "current" version instead of
-retrieving it from the main module, this version will then be incremented for
-rewriting. Existing version assignments and new versions must be parseable with
-the same rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
+main module's version is read, bumped (using L<Version::Next>), and then used
+to update the version in all perl files in the distribution with a version
+assignment. The C<V> environment variable can also be used to set the "current"
+version instead of retrieving it from the main module, this version will then
+be incremented for rewriting.
+
+Existing version assignments and new versions must be parseable with the same
+rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to
+say, they should either be a decimal number with a single decimal point, or a
+tuple version with a leading C<v> and at least 3 segments separated by decimal
+points. Version assignments should be in the form C<our $VERSION = '...';>.
 
 See the script L<perl-rewrite-version> to update all modules to a specific
 version.
@@ -121,5 +126,4 @@ This is free software, licensed under:
 
 =head1 SEE ALSO
 
-L<perl-rewrite-version>, L<App::RewriteVersion>,
 L<Dist::Zilla::Plugin::RewriteVersion>, L<Version::Next>

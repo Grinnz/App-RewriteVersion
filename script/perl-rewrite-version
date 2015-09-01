@@ -60,9 +60,13 @@ passed as an argument, otherwise the current working directory is used. The
 main module's version is read, and then used to update the version in all perl
 files in the distribution with a version assignment. The C<V> environment
 variable can be used to override the current version, and the C<-V> option
-overrides the version to set regardless of the current version. Existing
-version assignments and new versions must be parseable with the same rules as
-in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
+overrides the version to set regardless of the current version.
+
+Existing version assignments and new versions must be parseable with the same
+rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to
+say, they should either be a decimal number with a single decimal point, or a
+tuple version with a leading C<v> and at least 3 segments separated by decimal
+points. Version assignments should be in the form C<our $VERSION = '...';>.
 
 See the script L<perl-bump-version> for automatic incrementing of the version
 across your distribution.
@@ -126,5 +130,4 @@ This is free software, licensed under:
 
 =head1 SEE ALSO
 
-L<perl-bump-version>, L<App::RewriteVersion>,
 L<Dist::Zilla::Plugin::RewriteVersion>, L<Version::Next>
