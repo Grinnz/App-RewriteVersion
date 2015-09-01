@@ -1,0 +1,126 @@
+#!perl
+
+use strict;
+use warnings;
+use App::BumpVersion;
+use Getopt::Long qw(:config no_auto_abbrev no_ignore_case bundling auto_help);
+
+our $VERSION = '0.001';
+
+GetOptions(
+	'b|bump!'           => \my $bump,
+	'f|from=s'          => \my $version_from,
+	'g|global'          => \my $global,
+	'L|follow-symlinks' => \my $follow,
+	't|trial'           => \my $trial,
+	'u|underscores'     => \my $underscores,
+	'v|verbose'         => \my $verbose,
+	'V|set-version=s'   => \my $version,
+);
+
+my $dir = shift;
+
+my $app = App::BumpVersion->new;
+$app->allow_decimal_underscores($underscores) if defined $underscores;
+$app->follow_symlinks($follow) if defined $follow;
+$app->global($global) if defined $global;
+$app->verbose($verbose) if defined $verbose;
+
+$bump = sub { $version } if defined $version;
+$app->bump_version(dir => $dir, bump => $bump, is_trial => $trial, version_from => $version_from);
+
+=head1 NAME
+
+perl-bump-version - A tool to rewrite or bump your Perl module versions
+
+=head1 SYNOPSIS
+
+ perl-bump-version [options] [dir]
+ 
+   perl-bump-version --from lib/Foo/Bar.pm
+   perl-bump-version --trial --underscores -V 3.30_3
+   perl-bump-version -Lg --no-bump /opt/projects/Foo-Bar/
+   V=v1.0.0 perl-bump-version
+ 
+ Options:
+   -b, --bump, --no-bump        bump the version (default: enabled)
+   -f, --from <file>            file to read version from
+   -g, --global                 rewrite versions globally instead of just the first per file (default: disabled)
+   -L, --follow-symlinks        follow symlinks when finding perl files to rewrite (default: disabled)
+   -t, --trial                  mark version as a trial version (default: disabled)
+   -u, --underscores            allow decimal versions with underscores (default: disabled)
+   -v, --verbose                print progress messages to STDOUT (default: disabled)
+   -V, --set-version            set version manually, disables bumping
+
+=head1 DESCRIPTION
+
+L<perl-bump-version> is a command-line tool using L<App::BumpVersion> to manage
+Perl module versions in a distribution. A distribution directory can be passed
+as an argument, otherwise the current working directory is used. The main
+module's version is read, bumped, and then used to update the version in all
+perl files in the distribution with a version assignment. The C<V> environment
+variable and C<-V> option will both act as an override for the version to set,
+and disable version bumping. Existing version assignments and new versions must
+be parseable with the same rules as in
+L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
+
+=head1 OPTIONS
+
+=head2 -b, --bump, --no-bump
+
+Enables or disables automatic version bumping using L<Version::Next>. Enabled
+by default.
+
+=head2 -f, --from <file>
+
+File to read main version from. If unspecified, the main module of the
+distribution will be guessed in order to determine its version. May be
+overridden if the C<V> environment variable or C<-V> option is set.
+
+=head2 -g, --global
+
+Update all instances of version assignment, instead of just the first
+occurrence in each file.
+
+=head2 -L, --follow-symlinks
+
+Follow directory symlinks when traversing the distribution for perl files to
+rewrite.
+
+=head2 -t, --trial
+
+Mark version assignment as a trial release.
+
+=head2 -u, --underscores
+
+Allow decimal versions with underscores. Note that version tumples with
+underscores are never allowed.
+
+=head2 -v, --verbose
+
+Print progress output to STDOUT.
+
+=head2 -V, --set-version
+
+Override the version to use for rewriting, ignoring any existing versions. The
+C<V> environment variable may also be used and will override this option.
+
+=head1 BUGS
+
+Report any issues on the public bugtracker.
+
+=head1 AUTHOR
+
+Dan Book <dbook@cpan.org>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is Copyright (c) 2015 by Dan Book.
+
+This is free software, licensed under:
+
+  The Artistic License 2.0 (GPL Compatible)
+
+=head1 SEE ALSO
+
+L<App::BumpVersion>, L<Dist::Zilla::Plugin::RewriteVersion>, L<Version::Next>
