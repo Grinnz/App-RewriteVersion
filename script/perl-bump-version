@@ -28,7 +28,7 @@ $app->verbose($verbose) if defined $verbose;
 
 my $current_version = $app->current_version(dir => $dir, file => $version_from);
 my $new_version = $app->bump_version($current_version);
-$app->rewrite_versions(dir => $dir, version => $new_version, is_trial => $is_trial);
+$app->rewrite_versions($new_version, dir => $dir, is_trial => $is_trial);
 
 =head1 NAME
 

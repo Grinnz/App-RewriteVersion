@@ -60,10 +60,10 @@ sub current_version {
 
 sub rewrite_version {
 	my $self = shift;
+	my $file = path(shift // croak qq{File to rewrite must be specified for rewrite_version});
+	my $version = shift // croak qq{Version to rewrite must be specified for rewrite_version};
 	my %params = @_;
-	my $file = path($params{file}) // croak 'File to rewrite must be specified for rewrite_version';
 	my $is_trial = $params{is_trial};
-	my $version = $params{version} // croak 'Version to rewrite must be specified for rewrite_version';
 	
 	$self->_check_version($version);
 	
@@ -88,10 +88,10 @@ sub rewrite_version {
 
 sub rewrite_versions {
 	my $self = shift;
+	my $version = shift // croak qq{Version to rewrite must be specified for rewrite_versions};
 	my %params = @_;
 	my $dir = path($params{dir} // '.');
 	my $is_trial = $params{is_trial};
-	my $version = $params{version} // croak 'Version to rewrite must be specified for rewrite_versions';
 	
 	$self->_check_version($version);
 	
@@ -104,7 +104,7 @@ sub rewrite_versions {
 	my %options = (follow_symlinks => $self->follow_symlinks);
 	my $iter = $rule->iter("$dir", \%options);
 	while (defined(my $file = $iter->())) {
-		my $rewritten = $self->rewrite_version(file => $file, version => $version, is_trial => $is_trial);
+		my $rewritten = $self->rewrite_version($file, $version, is_trial => $is_trial);
 		if ($self->verbose) {
 			print $rewritten ? qq{Updated \$VERSION assignment in "$file" to $version\n}
 				: qq{Skipping: no "our \$VERSION = '...'" found in "$file"\n};
@@ -233,31 +233,31 @@ App::RewriteVersion - A tool to update your Perl module versions
  $app->verbose(1)->follow_symlinks(0);
  
  # Bump versions for modules in current dist directory
- $app->update_versions(bump => 1);
+ $app->rewrite_versions($app->bump_version($app->current_version));
  
  # Bump versions in specified dist directory
- $app->update_versions(dir => 'Foo-Bar/', bump => 1);
+ $app->rewrite_versions($app->bump_version($app->current_version(dir => $dir)), dir => $dir);
  
  # Override module to read version from
- $app->update_versions(version_from => 'lib/Foo/Bar.pm', bump => 1);
+ $app->rewrite_versions($app->bump_version($app->current_version(file => $file)));
  
  # Don't bump, just synchronize versions with main module
- $app->update_versions(bump => 0);
+ $app->rewrite_versions($app->current_version);
  
  # Custom version bump algorithm
- $app->update_versions(bump => sub { shift + 0.05 });
+ $app->rewrite_versions($app->bump_version($app->current_version, sub { shift + 0.05 }));
  
- # Set versions to specified version (or use the V environment variable)
- $app->rewrite_versions(version => '0.065');
+ # Set versions to specified version
+ $app->rewrite_versions('0.065');
  
 =head1 DESCRIPTION
 
 L<App::RewriteVersion> is a tool for managing Perl module versions in a
 distribution. It is heavily based on the L<Dist::Zilla> plugin
 L<Dist::Zilla::Plugin::RewriteVersion>. Similarly to that plugin, the C<V>
-environment variable can be used to override the version used for rewriting.
-Existing version assignments and new versions must be parseable with the same
-rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
+environment variable can be used to override the version detected from the main
+module. Existing version assignments and new versions must be parseable with
+the same rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
 
 See L<perl-rewrite-version> and L<perl-bump-version> for details on
 command-line usage.
@@ -294,8 +294,8 @@ distribution for modules. Defaults to false.
  my $bool = $app->global;
  $app = $app->global(1);
 
-If true, the application will replace all version assignments found in each
-particular module instead of just the first instance found. Defaults to false.
+If true, the application will replace all version assignments found instead of
+just the first instance in each file. Defaults to false.
 
 =head2 verbose
 
@@ -331,62 +331,30 @@ new version string. By default, L<Version::Next> is used.
 Returns the current version of the distribution using L</"version_from">. If no
 C<file> is passed, the main module filename will be guessed from C<dir>
 (defaulting to current working directory), using heuristics similar to
-L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. The
-C<V> environment variable will be returned instead if set.
+L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. If
+the C<V> environment variable is set, it will be returned regardless of other
+options.
 
 =head2 rewrite_version
 
- my $bool = $app->rewrite_version(file => $file, version => $version);
- my $bool = $app->rewrite_version(file => $file, version => $version, is_trial => 1);
+ my $bool = $app->rewrite_version($file, $version);
+ my $bool = $app->rewrite_version($file, $version, is_trial => $is_trial);
 
 Rewrites the version of the file at C<$file> to C<$version> if it has a version
 assignment in the form C<our $VERSION = '...';>. Returns true if the version
-was rewritten, or false if no version assignment was found. Accepts the
-following options:
-
-=over
-
-=item file
-
-Relative or absolute path for the file to operate on, required.
-
-=item is_trial
-
-If true, C<# TRIAL> will be appended to the version assignment line when
-rewriting. Defaults to false.
-
-=item version
-
-Version to set in file, required.
-
-=back
+was rewritten, or false if no version assignment was found. If C<$is_trial> is
+true, C<# TRIAL> will be appended to the version assignment line when
+rewriting.
 
 =head2 rewrite_versions
 
- $app = $app->rewrite_versions(version => $version);
- $app = $app->rewrite_versions(dir => $dir, version => $version);
- $app = $app->rewrite_versions(version => $version, is_trial => 1);
+ $app = $app->rewrite_versions($version);
+ $app = $app->rewrite_versions($version, dir => $dir);
+ $app = $app->rewrite_versions($version, is_trial => 1);
 
-Rewrites the versions of all perl files found in C<$dir> to C<$version> using
-L</"rewrite_version">. Accepts the following options:
-
-=over
-
-=item dir
-
-Relative or absolute path for the distribution directory to operate on.
-Defaults to the current working directory.
-
-=item is_trial
-
-If true, C<# TRIAL> will be appended to the version assignment line when
-rewriting. Defaults to false.
-
-=item version
-
-Version to set in perl files, required.
-
-=back
+Rewrites the versions of all perl files found in C<dir> (defaulting to current
+working directory) to C<$version> using L</"rewrite_version">. If passed,
+the C<is_trial> option is passed through.
 
 =head2 version_from
 

@@ -27,8 +27,8 @@ $app->follow_symlinks($follow) if defined $follow;
 $app->global($global) if defined $global;
 $app->verbose($verbose) if defined $verbose;
 
-my $current_version = $set_version // $app->current_version(dir => $dir, file => $version_from);
-$app->rewrite_versions(dir => $dir, version => $current_version, is_trial => $is_trial);
+my $new_version = $set_version // $app->current_version(dir => $dir, file => $version_from);
+$app->rewrite_versions($new_version, dir => $dir, is_trial => $is_trial);
 
 =head1 NAME
 
