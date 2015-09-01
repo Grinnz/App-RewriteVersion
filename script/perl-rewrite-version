@@ -8,30 +8,27 @@ use Getopt::Long qw(:config no_auto_abbrev no_ignore_case bundling auto_help);
 our $VERSION = '0.001';
 
 GetOptions(
-	'd|dry-run'         => \my $dry_run,
-	'f|from=s'          => \my $version_from,
-	'g|global'          => \my $global,
-	'L|follow-symlinks' => \my $follow,
-	't|trial'           => \my $trial,
-	'u|underscores'     => \my $underscores,
-	'v|verbose'         => \my $verbose,
-	'V|set-version=s'   => \my $set_version,
+	'd|dry-run'          => \my $dry_run,
+	'f|from=s'           => \my $version_from,
+	'g|global'           => \my $global,
+	'L|follow-symlinks'  => \my $follow,
+	't|trial'            => \my $is_trial,
+	'u|allow-underscore' => \my $underscore,
+	'v|verbose'          => \my $verbose,
+	'V|set-version=s'    => \my $set_version,
 );
 
 my $dir = shift;
 
 my $app = App::RewriteVersion->new;
-$app->allow_decimal_underscores($underscores) if defined $underscores;
+$app->allow_decimal_underscore($underscore) if defined $underscore;
 $app->dry_run($dry_run) if defined $dry_run;
 $app->follow_symlinks($follow) if defined $follow;
 $app->global($global) if defined $global;
 $app->verbose($verbose) if defined $verbose;
 
-if (defined $set_version) {
-	$app->rewrite_versions(dir => $dir, version => $set_version, is_trial => $trial);
-} else {
-	$app->update_versions(dir => $dir, bump => 0, is_trial => $trial, version_from => $version_from);
-}
+my $current_version = $set_version // $app->current_version(dir => $dir, file => $version_from);
+$app->rewrite_versions(dir => $dir, version => $current_version, is_trial => $is_trial);
 
 =head1 NAME
 
@@ -42,7 +39,7 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
  perl-rewrite-version [options] [dir]
  
    perl-rewrite-version --from lib/Foo/Bar.pm
-   perl-rewrite-version --trial --underscores -V 3.30_3
+   perl-rewrite-version --trial -uV 3.30_3
    perl-rewrite-version -Lg /opt/projects/Foo-Bar/
    V=v1.0.0 perl-rewrite-version
  
@@ -51,7 +48,7 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
    -g, --global                 rewrite versions globally instead of just the first per file (default: disabled)
    -L, --follow-symlinks        follow symlinks when finding perl files to rewrite (default: disabled)
    -t, --trial                  mark version as a trial version (default: disabled)
-   -u, --underscores            allow decimal versions with underscores (default: disabled)
+   -u, --allow-underscore       allow decimal versions with underscores (default: disabled)
    -v, --verbose                print progress messages to STDOUT (default: disabled)
    -V, --set-version            set version manually instead of from file
 
@@ -97,7 +94,7 @@ rewrite.
 
 Mark version assignment as a trial release.
 
-=head2 -u, --underscores
+=head2 -u, --allow-underscore
 
 Allow decimal versions with underscores. Note that version tumples with
 underscores are never allowed.

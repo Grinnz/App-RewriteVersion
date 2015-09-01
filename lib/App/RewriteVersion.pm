@@ -28,6 +28,36 @@ sub _boolean {
 	return $self;
 }
 
+sub bump_version {
+	my $self = shift;
+	my $version = shift // croak qq{Version is required for bump_version};
+	my $bump = shift;
+	
+	$self->_check_version($version);
+	
+	if (defined $bump) {
+		croak qq{Invalid bump coderef for bump_version} unless ref $bump eq 'CODE';
+		$version = $bump->($version);
+	} else {
+		$version = next_version($version);
+	}
+	
+	return $version;
+}
+
+sub current_version {
+	my $self = shift;
+	my %params = @_;
+	my $dir = path($params{dir} // '.');
+	my $version_from = $params{file};
+	
+	return $ENV{V} if exists $ENV{V};
+	
+	$version_from //= $self->_main_module($dir);
+	return $self->version_from($version_from)
+		// croak qq{No version found in file "$version_from"};
+}
+
 sub rewrite_version {
 	my $self = shift;
 	my %params = @_;
@@ -80,35 +110,6 @@ sub rewrite_versions {
 				: qq{Skipping: no "our \$VERSION = '...'" found in "$file"\n};
 		}
 	}
-	
-	return $self;
-}
-
-sub update_versions {
-	my $self = shift;
-	my %params = @_;
-	my $dir = path($params{dir} // '.');
-	my $bump = $params{bump};
-	my $is_trial = $params{is_trial};
-	my $version_from = $params{version_from};
-	
-	my $version;
-	if (exists $ENV{V}) {
-		$version = $ENV{V};
-	} else {
-		$version_from //= $self->_main_module($dir);
-		$version = $self->version_from($version_from)
-			// croak qq{No version found in file "$version_from"};
-	}
-	
-	$self->_check_version($version);
-	if (ref $bump eq 'CODE') {
-		$version = $bump->($version);
-	} elsif ($bump) {
-		$version = next_version($version);
-	}
-	
-	$self->rewrite_versions(dir => $dir, version => $version, is_trial => $is_trial);
 	
 	return $self;
 }
@@ -311,6 +312,28 @@ Enable progress messages to be printed to STDOUT. Defaults to false.
 
 Construct a new L<App::RewriteVersion> object.
 
+=head2 bump_version
+
+ my $new_version = $app->bump_version($version);
+ my $new_version = $app->bump_version($version, sub { $_[0] + 1 });
+
+Increments a version string, returning the new version string. An optional
+coderef can be passed for custom version bump logic. The coderef will receive
+the current version string as the first argument and is expected to return a
+new version string. By default, L<Version::Next> is used.
+
+=head2 current_version
+
+ my $current_version = $app->current_version;
+ my $current_version = $app->current_version(dir => $dir);
+ my $current_version = $app->current_version(file => $file);
+
+Returns the current version of the distribution using L</"version_from">. If no
+C<file> is passed, the main module filename will be guessed from C<dir>
+(defaulting to current working directory), using heuristics similar to
+L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. The
+C<V> environment variable will be returned instead if set.
+
 =head2 rewrite_version
 
  my $bool = $app->rewrite_version(file => $file, version => $version);
@@ -362,49 +385,6 @@ rewriting. Defaults to false.
 =item version
 
 Version to set in perl files, required.
-
-=back
-
-=head2 update_versions
-
- $app = $app->update_versions;
- $app = $app->update_versions(dir => $path);
- $app = $app->update_versions(bump => sub { $_[0]+1 });
- $app = $app->update_versions(version_from => $module_file);
- $app = $app->update_versions(bump => 1, is_trial => 1);
-
-Determines the version of the main module in the distribution and rewrites
-versions in all perl files using L</"rewrite_versions">. Accepts the following
-options:
-
-=over
-
-=item bump
-
-If set to a code reference, it will be called with the current version as a
-string, and will be expected to return the new version to use for rewriting.
-Otherwise, a true value will use L<Version::Next> to determine the version to
-set, and a false value will use the original unchanged version. Defaults to
-false.
-
-=item dir
-
-Relative or absolute path for the distribution directory to operate on.
-Defaults to the current working directory.
-
-=item is_trial
-
-If true, C<# TRIAL> will be appended to the version assignment line when
-rewriting. Defaults to false.
-
-=item version_from
-
-File to use as main module for determining the current version, relative to the
-distribution root directory. If unset, the main module filename will be guessed
-from the distribution directory name, using heuristics similar to
-L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. The
-C<V> environment variable will set the current version directly and override
-this option.
 
 =back
 
