@@ -15,6 +15,7 @@ GetOptions(
 	't|trial'           => \my $trial,
 	'u|underscores'     => \my $underscores,
 	'v|verbose'         => \my $verbose,
+	'V|set-version=s'   => \my $set_version,
 );
 
 my $dir = shift;
@@ -26,44 +27,48 @@ $app->follow_symlinks($follow) if defined $follow;
 $app->global($global) if defined $global;
 $app->verbose($verbose) if defined $verbose;
 
-$app->update_versions(dir => $dir, bump => 1, is_trial => $trial, version_from => $version_from);
+if (defined $set_version) {
+	$app->rewrite_versions(dir => $dir, version => $set_version, is_trial => $trial);
+} else {
+	$app->update_versions(dir => $dir, bump => 0, is_trial => $trial, version_from => $version_from);
+}
 
 =head1 NAME
 
-perl-bump-version - A tool to bump your Perl module versions
+perl-rewrite-version - A tool to rewrite your Perl module versions
 
 =head1 SYNOPSIS
 
- perl-bump-version [options] [dir]
+ perl-rewrite-version [options] [dir]
  
-   perl-bump-version --from lib/Foo/Bar.pm
-   perl-bump-version --trial --underscores
-   perl-bump-version -Lg /opt/projects/Foo-Bar/
-   V=v1.0.0 perl-bump-version
-
+   perl-rewrite-version --from lib/Foo/Bar.pm
+   perl-rewrite-version --trial --underscores -V 3.30_3
+   perl-rewrite-version -Lg /opt/projects/Foo-Bar/
+   V=v1.0.0 perl-rewrite-version
+ 
  Options:
-   -d, --dry-run                don't actually munge files (default: disabled)
    -f, --from <file>            file to read version from
    -g, --global                 rewrite versions globally instead of just the first per file (default: disabled)
    -L, --follow-symlinks        follow symlinks when finding perl files to rewrite (default: disabled)
    -t, --trial                  mark version as a trial version (default: disabled)
    -u, --underscores            allow decimal versions with underscores (default: disabled)
    -v, --verbose                print progress messages to STDOUT (default: disabled)
+   -V, --set-version            set version manually instead of from file
 
 =head1 DESCRIPTION
 
-L<perl-bump-version> is a command-line tool using L<App::RewriteVersion> to
-bump Perl module versions in a distribution. A distribution directory can be
+L<perl-rewrite-version> is a command-line tool using L<App::RewriteVersion> to
+update Perl module versions in a distribution. A distribution directory can be
 passed as an argument, otherwise the current working directory is used. The
-main module's version is read, bumped, and then used to update the version in
-all perl files in the distribution with a version assignment. The C<V>
-environment variable can also be used to set the "current" version instead of
-retrieving it from the main module, this version will then be incremented for
-rewriting. Existing version assignments and new versions must be parseable with
-the same rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
+main module's version is read, and then used to update the version in all perl
+files in the distribution with a version assignment. The C<V> environment
+variable can be used to override the current version, and the C<-V> option
+overrides the version to set regardless of the current version. Existing
+version assignments and new versions must be parseable with the same rules as
+in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
 
-See the script L<perl-rewrite-version> to update all modules to a specific
-version.
+See the script L<perl-bump-version> for automatic incrementing of the version
+across your distribution.
 
 =head1 OPTIONS
 
@@ -75,8 +80,8 @@ verify expected functionality.
 =head2 -f, --from <file>
 
 File to read main version from. If unspecified, the main module of the
-distribution will be guessed in order to determine its version. May be
-overridden if the C<V> environment variable or C<-V> option is set.
+distribution will be guessed in order to determine its version. Ignored if the
+C<V> environment variable or the C<-V> option is set.
 
 =head2 -g, --global
 
@@ -101,6 +106,11 @@ underscores are never allowed.
 
 Print progress output to STDOUT.
 
+=head2 -V, --set-version
+
+Override the version to use for rewriting, ignoring any existing versions and
+the C<V> environment variable.
+
 =head1 BUGS
 
 Report any issues on the public bugtracker.
@@ -119,5 +129,5 @@ This is free software, licensed under:
 
 =head1 SEE ALSO
 
-L<perl-rewrite-version>, L<App::RewriteVersion>,
+L<perl-bump-version>, L<App::RewriteVersion>,
 L<Dist::Zilla::Plugin::RewriteVersion>, L<Version::Next>

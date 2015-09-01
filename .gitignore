@@ -16,4 +16,4 @@ nytprof.out
 *.o
 *.bs
 /_eumm/
-/App-BumpVersion-*
+/App-RewriteVersion-*

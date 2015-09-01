@@ -1,4 +1,4 @@
-package App::BumpVersion;
+package App::RewriteVersion;
 
 use strict;
 use warnings;
@@ -11,13 +11,15 @@ our $VERSION = '0.001';
 
 sub new { bless {}, shift }
 
-sub allow_decimal_underscore { $self->_boolean('allow_decimal_underscore', 0, @_) }
+sub allow_decimal_underscore { shift->_boolean('allow_decimal_underscore', 0, @_) }
 
-sub follow_symlinks { $self->_boolean('follow_symlinks', 0, @_) }
+sub dry_run { shift->_boolean('dry_run', 0, @_) }
 
-sub global { $self->_boolean('global', 0, @_) }
+sub follow_symlinks { shift->_boolean('follow_symlinks', 0, @_) }
 
-sub verbose { $self->_boolean('verbose', 0, @_) }
+sub global { shift->_boolean('global', 0, @_) }
+
+sub verbose { shift->_boolean('verbose', 0, @_) }
 
 sub _boolean {
 	my ($self, $attr, $default) = (shift, shift, shift);
@@ -26,12 +28,68 @@ sub _boolean {
 	return $self;
 }
 
-sub bump_versions {
+sub rewrite_version {
+	my $self = shift;
+	my %params = @_;
+	my $file = path($params{file}) // croak 'File to rewrite must be specified for rewrite_version';
+	my $is_trial = $params{is_trial};
+	my $version = $params{version} // croak 'Version to rewrite must be specified for rewrite_version';
+	
+	$self->_check_version($version);
+	
+	return 0 unless -T $file;
+	my $content = $file->slurp_utf8;
+	
+	my $code = qq{our \$VERSION = '$version';};
+	$code .= " # TRIAL" if $is_trial;
+	
+	$code .= qq{\n\$VERSION = eval \$VERSION;}
+		if $version =~ /_/ and scalar($version =~ /\./g) <= 1;
+	
+	my $assign_regex = _assign_re();
+	if ($self->global ? ($content =~ s{^$assign_regex[^\n]*$}{$code}msg)
+	                  : ($content =~ s{^$assign_regex[^\n]*$}{$code}ms)) {
+		$file->append_utf8({truncate => 1}, $content) unless $self->dry_run;
+		return 1;
+	}
+	
+	return 0;
+}
+
+sub rewrite_versions {
 	my $self = shift;
 	my %params = @_;
 	my $dir = path($params{dir} // '.');
-	my $bump = $params{bump} // 1;
-	my $trial = $params{is_trial} ? 1 : 0;
+	my $is_trial = $params{is_trial};
+	my $version = $params{version} // croak 'Version to rewrite must be specified for rewrite_versions';
+	
+	$self->_check_version($version);
+	
+	my @perl_file_rules = (
+		Path::Iterator::Rule->new->perl_module,
+		Path::Iterator::Rule->new->perl_script,
+		Path::Iterator::Rule->new->perl_test,
+	);
+	my $rule = Path::Iterator::Rule->new->file->ascii->skip_vcs->or(@perl_file_rules);
+	my %options = (follow_symlinks => $self->follow_symlinks);
+	my $iter = $rule->iter("$dir", \%options);
+	while (defined(my $file = $iter->())) {
+		my $rewritten = $self->rewrite_version(file => $file, version => $version, is_trial => $is_trial);
+		if ($self->verbose) {
+			print $rewritten ? qq{Updated \$VERSION assignment in "$file" to $version\n}
+				: qq{Skipping: no "our \$VERSION = '...'" found in "$file"\n};
+		}
+	}
+	
+	return $self;
+}
+
+sub update_versions {
+	my $self = shift;
+	my %params = @_;
+	my $dir = path($params{dir} // '.');
+	my $bump = $params{bump};
+	my $is_trial = $params{is_trial};
 	my $version_from = $params{version_from};
 	
 	my $version;
@@ -40,72 +98,32 @@ sub bump_versions {
 	} else {
 		$version_from //= $self->_main_module($dir);
 		$version = $self->version_from($version_from)
-			// croak qq{No version found in module "$main_module"};
-		$self->_check_version($version);
-		if (ref $bump eq 'CODE') {
-			$version = $bump->($version);
-		} elsif ($bump) {
-			$version = next_version($version);
-		}
+			// croak qq{No version found in file "$version_from"};
 	}
-	
-	$self->rewrite_versions($dir, $version, $trial);
-	
-	return $self;
-}
-
-sub rewrite_version {
-	my ($self, $path, $version, $trial) = @_;
-	
-	return 0 unless -T $path;
-	$path = path($path);
-	my $content = $path->slurp_utf8;
-	
-	my $code = qq{our \$VERSION = '$version';};
-	$code .= " # TRIAL" if $trial;
-	
-	$code .= qq{\n\$VERSION = eval \$VERSION;}
-		if $version =~ /_/ and scalar($version =~ /\./g) <= 1;
-	
-	my $assign_regex = _assign_re();
-	if ($self->global ? ($content =~ s{^$assign_regex[^\n]*$}{$code}msg)
-	                  : ($content =~ s{^$assign_regex[^\n]*$}{$code}ms)) {
-		$path->append_utf8({truncate => 1}, $content);
-		return 1;
-	}
-	
-	return 0;
-}
-
-sub rewrite_versions {
-	my ($self, $dir, $version, $trial) = @_;
 	
 	$self->_check_version($version);
-	
-	my $rule = Path::Iterator::Rule->new->file->ascii->skip_vcs->perl_file;
-	my %options = (follow_symlinks => $self->follow_symlinks);
-	my $iter = $rule->iter("$dir", \%options);
-	while (defined(my $file = $iter->())) {
-		my $rewritten = $self->rewrite_version($file, $version, $trial);
-		if ($self->verbose) {
-			print $rewritten ? qq{Updated \$VERSION assignment in "$file"\n}
-				: qq{Skipping: no "our \$VERSION = '...'" found in "$file"\n};
-		}
+	if (ref $bump eq 'CODE') {
+		$version = $bump->($version);
+	} elsif ($bump) {
+		$version = next_version($version);
 	}
+	
+	$self->rewrite_versions(dir => $dir, version => $version, is_trial => $is_trial);
+	
 	return $self;
 }
 
 sub version_from {
-	my ($self, $path) = @_;
+	my $self = shift;
+	my $file = path(shift // croak qq{File is required for version_from});
 	
-	return undef unless -T $path;
-	$path = path($path);
-	my $content = $path->slurp_utf8;
+	return undef unless -T $file;
+	my $content = $file->slurp_utf8;
 	
 	my $assign_regex = _assign_re();
 	my ($quote, $version) = $content =~ m{^$assign_regex[^\n]*$}ms;
 	
-	print qq{Extracted version from $path: $version\n} if $version and $self->verbose;
+	print qq{Extracted version from $file: $version\n} if $version and $self->verbose;
 	return $version;
 }
 
@@ -122,28 +140,23 @@ sub _dist_name {
 	# Adapted from Dist::Zilla::Plugin::NameFromDirectory
 	my $name = $path->absolute->basename;
 	$name =~ s/(?:^(?:perl|p5)-|[\-\.]pm$)//;
-	print qq{Guessing distribution name is $name} if $self->verbose;
+	print qq{Guessing distribution name is $name\n} if $self->verbose;
 	
 	return $name;
 }
 
 sub _main_module {
-	my ($self, $path, $name) = @_;
+	my ($self, $path) = @_;
 	
 	# Adapted from Dist::Zilla
 	my $main;
-	if (defined $self->main_module) {
-		$main = path($self->main_module);
-		croak qq{Specified main module at "$main" does not exist} unless $main->exists;
-	} else {
-		(my $guess = $self->_dist_name($path)) =~ s{-}{/}g;
-		$main = $path->child("lib/$guess");
-		unless ($main->exists) {
-			$main = path($self->_shortest_module($path));
-		}
-		croak qq{Could not find any modules to retrieve version from}
-			unless defined $main and $main->exists;
+	(my $guess = $self->_dist_name($path)) =~ s{-}{/}g;
+	$main = $path->child("lib/$guess");
+	unless ($main->exists) {
+		$main = path($self->_shortest_module($path));
 	}
+	croak qq{Could not find any modules to retrieve version from}
+		unless defined $main and $main->exists;
 	
 	print qq{Using "$main" as dist's main module\n} if $self->verbose;
 	return $main;
@@ -208,56 +221,64 @@ sub _assign_re {
 
 =head1 NAME
 
-App::BumpVersion - A tool to rewrite or bump your Perl module versions
+App::RewriteVersion - A tool to update your Perl module versions
 
 =head1 SYNOPSIS
 
- use App::BumpVersion;
- my $app = App::BumpVersion->new;
+ use App::RewriteVersion;
+ my $app = App::RewriteVersion->new;
  
  # Options
  $app->verbose(1)->follow_symlinks(0);
  
  # Bump versions for modules in current dist directory
- $app->bump_versions;
+ $app->update_versions(bump => 1);
  
  # Bump versions in specified dist directory
- $app->bump_versions(dir => 'Foo-Bar/');
+ $app->update_versions(dir => 'Foo-Bar/', bump => 1);
  
  # Override module to read version from
- $app->bump_versions(version_from => 'lib/Foo/Bar.pm');
+ $app->update_versions(version_from => 'lib/Foo/Bar.pm', bump => 1);
  
  # Don't bump, just synchronize versions with main module
- $app->bump_versions(bump => 0);
- 
- # Set versions to specified version (or use the V environment variable)
- $app->bump_versions(bump => sub { '0.56' });
+ $app->update_versions(bump => 0);
  
  # Custom version bump algorithm
- $app->bump_versions(bump => sub { shift + 0.05 });
+ $app->update_versions(bump => sub { shift + 0.05 });
+ 
+ # Set versions to specified version (or use the V environment variable)
+ $app->rewrite_versions(version => '0.065');
  
 =head1 DESCRIPTION
 
-L<App::BumpVersion> is a tool for managing Perl module versions in a
+L<App::RewriteVersion> is a tool for managing Perl module versions in a
 distribution. It is heavily based on the L<Dist::Zilla> plugin
 L<Dist::Zilla::Plugin::RewriteVersion>. Similarly to that plugin, the C<V>
-environment variable can be used to override the version that is set, but note
-that in this case, it overrides the version-bumping functionality altogether.
+environment variable can be used to override the version used for rewriting.
 Existing version assignments and new versions must be parseable with the same
 rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">.
 
-See L<perl-bump-version> for details on command-line usage.
+See L<perl-rewrite-version> and L<perl-bump-version> for details on
+command-line usage.
 
 =head1 ATTRIBUTES
 
 =head2 allow_decimal_underscore
 
- my $bool = $app->allow_decimal_underscore
+ my $bool = $app->allow_decimal_underscore;
  $app = $app->allow_decimal_underscore(1);
 
 If true, decimal versions with underscores will be allowed. Defaults to false.
 As with L<Dist::Zilla::Plugin::RewriteVersion>, version tuples with underscores
 are never allowed.
+
+=head2 dry_run
+
+ my $bool = $app->dry_run;
+ $app = $app->dry_run(1);
+
+If true, the module will process files as normal but not actually modify them.
+Useful with L</"verbose"> to verify expected functionality.
 
 =head2 follow_symlinks
 
@@ -286,66 +307,106 @@ Enable progress messages to be printed to STDOUT. Defaults to false.
 
 =head2 new
 
- my $app = App::BumpVersion->new;
+ my $app = App::RewriteVersion->new;
 
-Construct a new L<App::BumpVersion> object.
+Construct a new L<App::RewriteVersion> object.
 
-=head2 bump_versions
+=head2 rewrite_version
 
- $app = $app->bump_versions;
- $app = $app->bump_versions(dir => '/foo/projects/Acme-Bar');
- $app = $app->bump_versions(bump => sub { 'v5.0.1' });
- $app = $app->bump_versions(version_from => 'lib/My/Module.pm');
- $app = $app->bump_versions(is_trial => 1);
+ my $bool = $app->rewrite_version(file => $file, version => $version);
+ my $bool = $app->rewrite_version(file => $file, version => $version, is_trial => 1);
 
-Rewrites versions in all perl files found that contain a version assignment in
-the form C<our $VERSION = '...'>. See L<Dist::Zilla::Plugin::RewriteVersion>
-for more information on the version parsing semantics. Accepts the following
+Rewrites the version of the file at C<$file> to C<$version> if it has a version
+assignment in the form C<our $VERSION = '...';>. Returns true if the version
+was rewritten, or false if no version assignment was found. Accepts the
+following options:
+
+=over
+
+=item file
+
+Relative or absolute path for the file to operate on, required.
+
+=item is_trial
+
+If true, C<# TRIAL> will be appended to the version assignment line when
+rewriting. Defaults to false.
+
+=item version
+
+Version to set in file, required.
+
+=back
+
+=head2 rewrite_versions
+
+ $app = $app->rewrite_versions(version => $version);
+ $app = $app->rewrite_versions(dir => $dir, version => $version);
+ $app = $app->rewrite_versions(version => $version, is_trial => 1);
+
+Rewrites the versions of all perl files found in C<$dir> to C<$version> using
+L</"rewrite_version">. Accepts the following options:
+
+=over
+
+=item dir
+
+Relative or absolute path for the distribution directory to operate on.
+Defaults to the current working directory.
+
+=item is_trial
+
+If true, C<# TRIAL> will be appended to the version assignment line when
+rewriting. Defaults to false.
+
+=item version
+
+Version to set in perl files, required.
+
+=back
+
+=head2 update_versions
+
+ $app = $app->update_versions;
+ $app = $app->update_versions(dir => $path);
+ $app = $app->update_versions(bump => sub { $_[0]+1 });
+ $app = $app->update_versions(version_from => $module_file);
+ $app = $app->update_versions(bump => 1, is_trial => 1);
+
+Determines the version of the main module in the distribution and rewrites
+versions in all perl files using L</"rewrite_versions">. Accepts the following
 options:
 
 =over
 
-=item * bump
+=item bump
 
 If set to a code reference, it will be called with the current version as a
 string, and will be expected to return the new version to use for rewriting.
 Otherwise, a true value will use L<Version::Next> to determine the version to
 set, and a false value will use the original unchanged version. Defaults to
-true.
+false.
 
-=item * dir
+=item dir
 
 Relative or absolute path for the distribution directory to operate on.
 Defaults to the current working directory.
 
-=item * is_trial
+=item is_trial
 
-If true, C<# TRIAL> will be appended to the version assignment line. Defaults
-to false.
+If true, C<# TRIAL> will be appended to the version assignment line when
+rewriting. Defaults to false.
 
-=item * version_from
+=item version_from
 
-File to read version from before bumping (if applicable), relative to the
+File to use as main module for determining the current version, relative to the
 distribution root directory. If unset, the main module filename will be guessed
 from the distribution directory name, using heuristics similar to
-L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">.
+L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. The
+C<V> environment variable will set the current version directly and override
+this option.
 
 =back
-
-=head2 rewrite_version
-
- my $bool = $app->rewrite_version($path, $version, $is_trial);
-
-Rewrites the version of the file at C<$path> to C<$version>. C<$path> may be a
-L<Path::Tiny> object. Returns true if the version was rewritten, or false if no
-version assignment was found.
-
-=head2 rewrite_versions
-
- $app = $app->rewrite_versions($dir, $version, $is_trial);
-
-Rewrites the versions of all perl files found in C<$dir> to C<$version> using
-L</"rewrite_version">.
 
 =head2 version_from
 
@@ -372,4 +433,5 @@ This is free software, licensed under:
 
 =head1 SEE ALSO
 
+L<perl-rewrite-version>, L<perl-bump-version>,
 L<Dist::Zilla::Plugin::RewriteVersion>, L<Version::Next>
