@@ -335,9 +335,11 @@ new version string. By default, L<Version::Next> is used.
 Returns the current version of the distribution using L</"version_from">. If no
 C<file> is passed, the main module filename will be guessed from C<dir>
 (defaulting to current working directory), using heuristics similar to
-L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. If
-the C<V> environment variable is set, it will be returned regardless of other
-options.
+L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. For
+example, if the directory is named C<Foo-Bar> it will look for
+C<lib/Foo/Bar.pm> within the distribution, and if that doesn't exist, the
+shortest module path found. If the C<V> environment variable is set, it will be
+returned regardless of other options.
 
 =head2 rewrite_version
 

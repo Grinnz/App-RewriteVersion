@@ -81,8 +81,9 @@ verify expected functionality.
 =head2 -f, --from <file>
 
 File to read main version from. If unspecified, the main module of the
-distribution will be guessed in order to determine its version. Ignored if the
-C<V> environment variable or the C<-V> option is set.
+distribution will be guessed in order to determine its version, see
+L<App::RewriteVersion/"current_version">. Ignored if the C<V> environment
+variable or the C<-V> option is set.
 
 =head2 -g, --global
 
@@ -100,7 +101,7 @@ Mark version assignment as a trial release.
 
 =head2 -u, --allow-underscore
 
-Allow decimal versions with underscores. Note that version tumples with
+Allow decimal versions with underscores. Note that version tuples with
 underscores are never allowed.
 
 =head2 -v, --verbose
