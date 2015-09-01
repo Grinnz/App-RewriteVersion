@@ -152,7 +152,7 @@ sub _main_module {
 	# Adapted from Dist::Zilla
 	my $main;
 	(my $guess = $self->_dist_name($path)) =~ s{-}{/}g;
-	$main = $path->child("lib/$guess");
+	$main = $path->child("lib/$guess.pm");
 	unless ($main->exists) {
 		$main = path($self->_shortest_module($path));
 	}
@@ -241,11 +241,11 @@ App::RewriteVersion - A tool to update your Perl module versions
  # Override module to read version from
  $app->rewrite_versions($app->bump_version($app->current_version(file => $file)));
  
- # Don't bump, just synchronize versions with main module
- $app->rewrite_versions($app->current_version);
- 
  # Custom version bump algorithm
  $app->rewrite_versions($app->bump_version($app->current_version, sub { shift + 0.05 }));
+ 
+ # Don't bump, just synchronize versions with main module
+ $app->rewrite_versions($app->current_version);
  
  # Set versions to specified version
  $app->rewrite_versions('0.065');
@@ -342,7 +342,7 @@ options.
 
 Rewrites the version of the file at C<$file> to C<$version> if it has a version
 assignment in the form C<our $VERSION = '...';>. Returns true if the version
-was rewritten, or false if no version assignment was found. If C<$is_trial> is
+was rewritten, or false if no version assignment was found. If C<is_trial> is
 true, C<# TRIAL> will be appended to the version assignment line when
 rewriting.
 
