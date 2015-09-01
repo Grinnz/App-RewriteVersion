@@ -221,7 +221,7 @@ sub _assign_re {
 
 =head1 NAME
 
-App::RewriteVersion - A tool to update your Perl module versions
+App::RewriteVersion - A tool to rewrite and bump your Perl module versions
 
 =head1 SYNOPSIS
 
@@ -274,8 +274,8 @@ command-line usage.
  $app = $app->allow_decimal_underscore(1);
 
 If true, decimal versions with underscores will be allowed. Defaults to false.
-As with L<Dist::Zilla::Plugin::RewriteVersion>, version tuples with underscores
-are never allowed.
+See L<Dist::Zilla::Plugin::BumpVersionAfterRelease/"Using underscore in decimal $VERSION">
+for more information.
 
 =head2 dry_run
 

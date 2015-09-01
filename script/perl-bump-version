@@ -102,8 +102,9 @@ Mark version assignment as a trial release.
 
 =head2 -u, --allow-underscore
 
-Allow decimal versions with underscores. Note that version tuples with
-underscores are never allowed.
+Allow decimal versions with underscores. See
+L<Dist::Zilla::Plugin::BumpVersionAfterRelease/"Using underscore in decimal $VERSION">
+for more information.
 
 =head2 -v, --verbose
 
