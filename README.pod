@@ -105,7 +105,8 @@ Construct a new L<App::RewriteVersion> object.
 Increments a version string, returning the new version string. An optional
 coderef can be passed for custom version bump logic. The coderef will receive
 the current version string as the first argument and is expected to return a
-new version string. By default, L<Version::Next> is used.
+new version string. By default, L<Version::Next> is used. An exception will be
+thrown if an invalid version is passed according to the current settings.
 
 =head2 current_version
 
@@ -120,7 +121,9 @@ L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. For
 example, if the directory is named C<Foo-Bar> it will look for
 C<lib/Foo/Bar.pm> within the distribution, and if that doesn't exist, the
 shortest module path found. If the C<V> environment variable is set, it will be
-returned regardless of other options.
+returned regardless of other options. An exception will be thrown if no version
+is found in the specified or guessed file, or if no perl modules could be
+found.
 
 =head2 rewrite_version
 
@@ -131,7 +134,8 @@ Rewrites the version of the file at C<$file> to C<$version> if it has a version
 assignment in the form C<our $VERSION = '...';>. Returns true if the version
 was rewritten, or false if no version assignment was found. If C<is_trial> is
 true, C<# TRIAL> will be appended to the version assignment line when
-rewriting.
+rewriting. An exception will be thrown if an invalid version is passed, or an
+I/O error occurs.
 
 =head2 rewrite_versions
 
@@ -141,7 +145,8 @@ rewriting.
 
 Rewrites the versions of all perl files found in C<dir> (defaulting to current
 working directory) to C<$version> using L</"rewrite_version">. If passed,
-the C<is_trial> option is passed through.
+the C<is_trial> option is passed through. An exception will be thrown if an
+invalid version is passed, or an I/O error occurs.
 
 =head2 version_from
 
