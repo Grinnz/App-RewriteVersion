@@ -1,6 +1,5 @@
 use strict;
 use warnings;
-use File::Path;
 use File::Temp;
 use Path::Tiny;
 use Test::More;
