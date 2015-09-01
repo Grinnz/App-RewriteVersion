@@ -51,7 +51,7 @@ sub current_version {
 	my $dir = path($params{dir} // '.');
 	my $version_from = $params{file};
 	
-	return $ENV{V} if exists $ENV{V};
+	return $ENV{V} if defined $ENV{V};
 	
 	$version_from //= $self->_main_module($dir);
 	return $self->version_from($version_from)
