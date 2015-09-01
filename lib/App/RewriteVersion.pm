@@ -98,7 +98,6 @@ sub rewrite_versions {
 	my @perl_file_rules = (
 		Path::Iterator::Rule->new->perl_module,
 		Path::Iterator::Rule->new->perl_script,
-		Path::Iterator::Rule->new->perl_test,
 	);
 	my $rule = Path::Iterator::Rule->new->file->ascii->skip_vcs->or(@perl_file_rules);
 	my %options = (follow_symlinks => $self->follow_symlinks);
