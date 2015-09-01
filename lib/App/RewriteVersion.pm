@@ -24,7 +24,7 @@ sub verbose { shift->_boolean('verbose', 0, @_) }
 sub _boolean {
 	my ($self, $attr, $default) = (shift, shift, shift);
 	return $self->{$attr} //= $default unless @_;
-	$self->{$attr} = shift ? 1 : 0;
+	$self->{$attr} = shift() ? 1 : 0;
 	return $self;
 }
 
