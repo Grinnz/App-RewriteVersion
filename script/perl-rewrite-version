@@ -19,7 +19,7 @@ GetOptions(
 	'V|set-version=s'    => \my $set_version,
 );
 
-my $dirs = @ARGV ? [@ARGV] : undef;
+my $subdirs = @ARGV ? [@ARGV] : undef;
 
 my $app = App::RewriteVersion->new;
 $app->allow_decimal_underscore($underscore) if defined $underscore;
@@ -29,7 +29,7 @@ $app->global($global) if defined $global;
 $app->verbose($verbose) if defined $verbose;
 
 my $new_version = $set_version // $app->current_version(dist_dir => $dist_dir, file => $version_from);
-$app->rewrite_versions($new_version, dist_dir => $dist_dir, is_trial => $is_trial, dirs => $dirs);
+$app->rewrite_versions($new_version, dist_dir => $dist_dir, is_trial => $is_trial, subdirs => $subdirs);
 
 =head1 NAME
 
@@ -37,7 +37,7 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
 
 =head1 SYNOPSIS
 
- perl-rewrite-version [options] [dir ...]
+ perl-rewrite-version [options] [subdir ...]
  
    perl-rewrite-version --from lib/Foo/Bar.pm
    perl-rewrite-version --trial --allow-underscore -V 3.30_3 lib script
@@ -60,11 +60,12 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
 L<perl-rewrite-version> is a command-line tool using L<App::RewriteVersion> to
 update Perl module versions in a distribution. The main module's version is
 read, and then used to update the version in all perl files in the distribution
-with a version assignment. The directories (relative to the distribution
+with a version assignment. The subdirectories (relative to the distribution
 directory) to update versions in can be specified as arguments, defaulting to
-C<lib>, C<script>, and C<bin> if no directories are specified. The C<V>
-environment variable can be used to override the current version, and the C<-V>
-option overrides the version to set regardless of the current version.
+C<lib>, C<script>, and C<bin> if no subdirectories are specified. The C<V>
+environment variable can be used to set the "current" version instead of
+retrieving it from a module, and the C<-V> option overrides the version to set
+regardless of the current version.
 
 Existing version assignments and new versions must be parseable with the same
 rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to

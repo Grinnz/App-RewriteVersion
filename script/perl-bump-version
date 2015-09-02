@@ -18,7 +18,7 @@ GetOptions(
 	'v|verbose'          => \my $verbose,
 );
 
-my $dirs = @ARGV ? [@ARGV] : undef;
+my $subdirs = @ARGV ? [@ARGV] : undef;
 
 my $app = App::RewriteVersion->new;
 $app->allow_decimal_underscore($underscore) if defined $underscore;
@@ -29,7 +29,7 @@ $app->verbose($verbose) if defined $verbose;
 
 my $current_version = $app->current_version(dist_dir => $dist_dir, file => $version_from);
 my $new_version = $app->bump_version($current_version);
-$app->rewrite_versions($new_version, dist_dir => $dist_dir, is_trial => $is_trial, dirs => $dirs);
+$app->rewrite_versions($new_version, dist_dir => $dist_dir, is_trial => $is_trial, subdirs => $subdirs);
 
 =head1 NAME
 
@@ -37,7 +37,7 @@ perl-bump-version - A tool to bump your Perl module versions
 
 =head1 SYNOPSIS
 
- perl-bump-version [options] [dir ...]
+ perl-bump-version [options] [subdir ...]
  
    perl-bump-version --from lib/Foo/Bar.pm
    perl-bump-version --trial --allow-underscore lib script
@@ -59,12 +59,12 @@ perl-bump-version - A tool to bump your Perl module versions
 L<perl-bump-version> is a command-line tool using L<App::RewriteVersion> to
 bump Perl module versions in a distribution. The main module's version is read,
 bumped (using L<Version::Next>), and then used to update the version in all
-perl files in the distribution with a version assignment. The directories
+perl files in the distribution with a version assignment. The subdirectories
 (relative to the distribution directory) to update versions in can be specified
-as arguments, defaulting to C<lib>, C<script>, and C<bin> if no directories are
-specified. The C<V> environment variable can also be used to set the "current"
-version instead of retrieving it from the main module, this version will then
-be incremented for rewriting.
+as arguments, defaulting to C<lib>, C<script>, and C<bin> if no subdirectories
+are specified. The C<V> environment variable can be used to set the "current"
+version instead of retrieving it from a module, this version will then be
+incremented for rewriting.
 
 Existing version assignments and new versions must be parseable with the same
 rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to

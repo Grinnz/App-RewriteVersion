@@ -9,8 +9,6 @@ use Version::Next 'next_version';
 
 our $VERSION = '0.001';
 
-my @skip_dirs = qw(blib \.build _build _eumm);
-
 sub new { bless {}, shift }
 
 sub allow_decimal_underscore { shift->_boolean('allow_decimal_underscore', 0, @_) }
@@ -94,8 +92,8 @@ sub rewrite_versions {
 	my %params = @_;
 	my $dist_dir = path($params{dist_dir} // '.');
 	my $is_trial = $params{is_trial};
-	my $dirs = $params{dirs} // [qw(lib script bin)];
-	my @target_dirs = map { $dist_dir->child($_) } @$dirs;
+	my $subdirs = $params{subdirs} // [qw(lib script bin)];
+	my @target_dirs = map { $dist_dir->child($_) } @$subdirs;
 	
 	$self->_check_version($version);
 	
@@ -244,6 +242,9 @@ App::RewriteVersion - A tool to rewrite and bump your Perl module versions
  # Override module to read version from
  $app->rewrite_versions($app->bump_version($app->current_version(file => $file)));
  
+ # Bump versions in specific subdirectories
+ $app->rewrite_versions($app->bump_version($app->current_version), subdirs => ['foo','bar']);
+ 
  # Custom version bump algorithm
  $app->rewrite_versions($app->bump_version($app->current_version, sub { shift + 0.05 }));
  
@@ -365,12 +366,12 @@ I/O error occurs.
  $app = $app->rewrite_versions($version);
  $app = $app->rewrite_versions($version, dist_dir => $dist_dir);
  $app = $app->rewrite_versions($version, is_trial => 1);
- $app = $app->rewrite_versions($version, dirs => ['lib']);
+ $app = $app->rewrite_versions($version, subdirs => ['lib']);
 
 Rewrites the versions of all perl files found in C<dist_dir> (defaulting to
 current working directory) to C<$version> using L</"rewrite_version">. The
-C<dirs> option can be used to specify an arrayref of directories relative to
-C<dist_dir> in which versions will be rewritten, otherwise defaulting to
+C<subdirs> option can be used to specify an arrayref of subdirectories relative
+to C<dist_dir> in which versions will be rewritten, otherwise defaulting to
 C<lib>, C<script>, and C<bin>. If passed, the C<is_trial> option is passed
 through to L</"rewrite_version">. An exception will be thrown if an invalid
 version is passed, or an I/O error occurs.

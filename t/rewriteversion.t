@@ -132,7 +132,7 @@ path("$dist/foo")->mkpath;
 my $module5 = path("$dist/foo/module.pm");
 $module5->spew_utf8(qq{our \$VERSION = '1.0';\n});
 
-$app->rewrite_versions('1.23', dist_dir => $dist, dirs => ['foo']);
+$app->rewrite_versions('1.23', dist_dir => $dist, subdirs => ['foo']);
 is $app->version_from($module5), '1.23', 'right version';
 is $app->current_version(dist_dir => $dist), '1.2_3', 'version unchanged';
 
