@@ -41,7 +41,7 @@ perl-bump-version - A tool to bump your Perl module versions
  
    perl-bump-version --from lib/Foo/Bar.pm
    perl-bump-version --trial --allow-underscore lib script
-   perl-bump-version -LgvD /opt/projects/Foo-Bar/
+   perl-bump-version -LdgvD /opt/projects/Foo-Bar/
    V=v1.0.0 perl-bump-version
 
  Options:

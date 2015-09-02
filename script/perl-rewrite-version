@@ -40,11 +40,13 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
  perl-rewrite-version [options] [dir ...]
  
    perl-rewrite-version --from lib/Foo/Bar.pm
-   perl-rewrite-version --trial --allow-underscores -V 3.30_3 lib script
-   perl-rewrite-version -LvgD /opt/projects/Foo-Bar/
+   perl-rewrite-version --trial --allow-underscore -V 3.30_3 lib script
+   perl-rewrite-version -LdvgD /opt/projects/Foo-Bar/
    V=v1.0.0 perl-rewrite-version
  
  Options:
+   -D, --dist-dir               distribution directory to operate on (default: current directory)
+   -d, --dry-run                don't actually update files (default: disabled)
    -f, --from <file>            file to read version from
    -g, --global                 rewrite versions globally instead of just the first per file (default: disabled)
    -L, --follow-symlinks        follow symlinks when finding perl files to rewrite (default: disabled)
