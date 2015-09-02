@@ -72,7 +72,7 @@ EOW
       "configure_requires" => {
         "Module::Build::Tiny" => "0.034"
       },
-      "dist_abstract" => "A tool to update your Perl module versions",
+      "dist_abstract" => "A tool to rewrite and bump your Perl module versions",
       "dist_author" => [
         "Dan Book <dbook\@cpan.org>"
       ],
@@ -83,19 +83,28 @@ EOW
       "recursive_test_files" => 1,
       "requires" => {
         "Carp" => 0,
+        "Getopt::Long" => "2.32",
         "Path::Iterator::Rule" => 0,
         "Path::Tiny" => "0.060",
+        "Unicode::UTF8" => "0.58",
         "Version::Next" => 0,
         "perl" => "5.010001"
       },
       "script_files" => [
         "script/perl-bump-version",
         "script/perl-rewrite-version"
-      ]
+      ],
+      "test_requires" => {
+        "File::Temp" => 0,
+        "Test::More" => "0.88"
+      }
     );
 
 
-    my %fallback_build_requires = ();
+    my %fallback_build_requires = (
+      "File::Temp" => 0,
+      "Test::More" => "0.88"
+    );
 
 
     unless ( eval { Module::Build->VERSION(0.4004) } ) {
