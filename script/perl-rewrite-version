@@ -15,8 +15,8 @@ GetOptions(
 	'L|follow-symlinks'  => \my $follow,
 	't|trial'            => \my $is_trial,
 	'u|allow-underscore' => \my $underscore,
-	'v|verbose'          => \my $verbose,
 	'V|set-version=s'    => \my $set_version,
+	'v|verbose'          => \my $verbose,
 );
 
 my $subdirs = @ARGV ? [@ARGV] : undef;
@@ -52,8 +52,8 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
    -L, --follow-symlinks        follow symlinks when finding perl files to rewrite (default: disabled)
    -t, --trial                  mark version as a trial version (default: disabled)
    -u, --allow-underscore       allow decimal versions with underscores (default: disabled)
-   -v, --verbose                print progress messages to STDOUT (default: disabled)
    -V, --set-version <version>  set version manually instead of from file
+   -v, --verbose                print progress messages to STDOUT (default: disabled)
 
 =head1 DESCRIPTION
 
@@ -114,14 +114,14 @@ Allow decimal versions with underscores. See
 L<Dist::Zilla::Plugin::BumpVersionAfterRelease/"Using underscore in decimal $VERSION">
 for more information.
 
-=head2 -v, --verbose
-
-Print progress output to STDOUT.
-
 =head2 -V, --set-version <version>
 
 Override the version to use for rewriting, ignoring any existing versions and
 the C<V> environment variable.
+
+=head2 -v, --verbose
+
+Print progress output to STDOUT.
 
 =head1 BUGS
 
