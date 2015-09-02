@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 use App::RewriteVersion;
-use Getopt::Long qw(:config no_auto_abbrev no_ignore_case bundling auto_help);
+use Getopt::Long qw(:config gnu_getopt no_auto_abbrev no_ignore_case auto_help);
 
 our $VERSION = '0.001';
 
@@ -64,8 +64,8 @@ with a version assignment. The subdirectories (relative to the distribution
 directory) to update versions in can be specified as arguments, defaulting to
 C<lib>, C<script>, and C<bin> if no subdirectories are specified. The C<V>
 environment variable can be used to set the "current" version instead of
-retrieving it from a module, and the C<-V> option overrides the version to set
-regardless of the current version.
+retrieving it from a module, and the C<-V> option overrides the version to
+rewrite regardless of the current version.
 
 Existing version assignments and new versions must be parseable with the same
 rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to
