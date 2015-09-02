@@ -16,7 +16,7 @@ App::RewriteVersion - A tool to rewrite and bump your Perl module versions
  $app->rewrite_versions($app->bump_version($app->current_version));
  
  # Bump versions in specified dist directory
- $app->rewrite_versions($app->bump_version($app->current_version(dir => $dir)), dir => $dir);
+ $app->rewrite_versions($app->bump_version($app->current_version(dist_dir => $dist_dir)), dist_dir => $dist_dir);
  
  # Override module to read version from
  $app->rewrite_versions($app->bump_version($app->current_version(file => $file)));
@@ -111,11 +111,11 @@ thrown if an invalid version is passed according to the current settings.
 =head2 current_version
 
  my $current_version = $app->current_version;
- my $current_version = $app->current_version(dir => $dir);
+ my $current_version = $app->current_version(dist_dir => $dist_dir);
  my $current_version = $app->current_version(file => $file);
 
 Returns the current version of the distribution using L</"version_from">. If no
-C<file> is passed, the main module filename will be guessed from C<dir>
+C<file> is passed, the main module filename will be guessed from C<dist_dir>
 (defaulting to current working directory), using heuristics similar to
 L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. For
 example, if the directory is named C<Foo-Bar> it will look for
@@ -140,19 +140,23 @@ I/O error occurs.
 =head2 rewrite_versions
 
  $app = $app->rewrite_versions($version);
- $app = $app->rewrite_versions($version, dir => $dir);
+ $app = $app->rewrite_versions($version, dist_dir => $dist_dir);
  $app = $app->rewrite_versions($version, is_trial => 1);
+ $app = $app->rewrite_versions($version, dirs => ['lib']);
 
-Rewrites the versions of all perl files found in C<dir> (defaulting to current
-working directory) to C<$version> using L</"rewrite_version">. If passed,
-the C<is_trial> option is passed through. An exception will be thrown if an
-invalid version is passed, or an I/O error occurs.
+Rewrites the versions of all perl files found in C<dist_dir> (defaulting to
+current working directory) to C<$version> using L</"rewrite_version">. The
+C<dirs> option can be used to specify an arrayref of directories relative to
+C<dist_dir> in which versions will be rewritten, otherwise defaulting to
+C<lib>, C<script>, and C<bin>. If passed, the C<is_trial> option is passed
+through to L</"rewrite_version">. An exception will be thrown if an invalid
+version is passed, or an I/O error occurs.
 
 =head2 version_from
 
- my $version = $app->version_from($path);
+ my $version = $app->version_from($file);
 
-Attempts to read version from the file at C<$path>. Returns C<undef> if no
+Attempts to read version from the file at C<$file>. Returns C<undef> if no
 version assignment was found.
 
 =head1 BUGS

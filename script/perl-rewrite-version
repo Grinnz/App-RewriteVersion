@@ -8,6 +8,7 @@ use Getopt::Long qw(:config no_auto_abbrev no_ignore_case bundling auto_help);
 our $VERSION = '0.001';
 
 GetOptions(
+	'D|dist-dir'         => \my $dist_dir,
 	'd|dry-run'          => \my $dry_run,
 	'f|from=s'           => \my $version_from,
 	'g|global'           => \my $global,
@@ -18,7 +19,7 @@ GetOptions(
 	'V|set-version=s'    => \my $set_version,
 );
 
-my $dir = shift;
+my $dirs = @ARGV ? [@ARGV] : undef;
 
 my $app = App::RewriteVersion->new;
 $app->allow_decimal_underscore($underscore) if defined $underscore;
@@ -27,8 +28,8 @@ $app->follow_symlinks($follow) if defined $follow;
 $app->global($global) if defined $global;
 $app->verbose($verbose) if defined $verbose;
 
-my $new_version = $set_version // $app->current_version(dir => $dir, file => $version_from);
-$app->rewrite_versions($new_version, dir => $dir, is_trial => $is_trial);
+my $new_version = $set_version // $app->current_version(dist_dir => $dist_dir, file => $version_from);
+$app->rewrite_versions($new_version, dist_dir => $dist_dir, is_trial => $is_trial, dirs => $dirs);
 
 =head1 NAME
 
@@ -36,11 +37,11 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
 
 =head1 SYNOPSIS
 
- perl-rewrite-version [options] [dir]
+ perl-rewrite-version [options] [dir ...]
  
    perl-rewrite-version --from lib/Foo/Bar.pm
-   perl-rewrite-version --trial -uV 3.30_3
-   perl-rewrite-version -Lg /opt/projects/Foo-Bar/
+   perl-rewrite-version --trial --allow-underscores -V 3.30_3 lib script
+   perl-rewrite-version -LvgD /opt/projects/Foo-Bar/
    V=v1.0.0 perl-rewrite-version
  
  Options:
@@ -55,12 +56,13 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
 =head1 DESCRIPTION
 
 L<perl-rewrite-version> is a command-line tool using L<App::RewriteVersion> to
-update Perl module versions in a distribution. A distribution directory can be
-passed as an argument, otherwise the current working directory is used. The
-main module's version is read, and then used to update the version in all perl
-files in the distribution with a version assignment. The C<V> environment
-variable can be used to override the current version, and the C<-V> option
-overrides the version to set regardless of the current version.
+update Perl module versions in a distribution. The main module's version is
+read, and then used to update the version in all perl files in the distribution
+with a version assignment. The directories (relative to the distribution
+directory) to update versions in can be specified as arguments, defaulting to
+C<lib>, C<script>, and C<bin> if no directories are specified. The C<V>
+environment variable can be used to override the current version, and the C<-V>
+option overrides the version to set regardless of the current version.
 
 Existing version assignments and new versions must be parseable with the same
 rules as in L<Dist::Zilla::Plugin::RewriteVersion/"DESCRIPTION">, that is to
@@ -72,6 +74,10 @@ See the script L<perl-bump-version> for automatic incrementing of the version
 across your distribution.
 
 =head1 OPTIONS
+
+=head2 -D, --dist-dir
+
+Distribution directory to operate on, defaults to current working directory.
 
 =head2 -d, --dry-run
 

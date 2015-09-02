@@ -9,6 +9,8 @@ use Version::Next 'next_version';
 
 our $VERSION = '0.001';
 
+my @skip_dirs = qw(blib \.build _build _eumm);
+
 sub new { bless {}, shift }
 
 sub allow_decimal_underscore { shift->_boolean('allow_decimal_underscore', 0, @_) }
@@ -48,12 +50,12 @@ sub bump_version {
 sub current_version {
 	my $self = shift;
 	my %params = @_;
-	my $dir = path($params{dir} // '.');
+	my $dist_dir = path($params{dist_dir} // '.');
 	my $version_from = $params{file};
 	
 	return $ENV{V} if defined $ENV{V};
 	
-	$version_from //= $self->_main_module($dir);
+	$version_from //= $self->_main_module($dist_dir);
 	return $self->version_from($version_from)
 		// croak qq{No version found in file "$version_from"};
 }
@@ -90,8 +92,10 @@ sub rewrite_versions {
 	my $self = shift;
 	my $version = shift // croak qq{Version to rewrite must be specified for rewrite_versions};
 	my %params = @_;
-	my $dir = path($params{dir} // '.');
+	my $dist_dir = path($params{dist_dir} // '.');
 	my $is_trial = $params{is_trial};
+	my $dirs = $params{dirs} // [qw(lib script bin)];
+	my @target_dirs = map { $dist_dir->child($_) } @$dirs;
 	
 	$self->_check_version($version);
 	
@@ -99,9 +103,9 @@ sub rewrite_versions {
 		Path::Iterator::Rule->new->perl_module,
 		Path::Iterator::Rule->new->perl_script,
 	);
-	my $rule = Path::Iterator::Rule->new->file->ascii->skip_vcs->or(@perl_file_rules);
+	my $rule = Path::Iterator::Rule->new->skip_vcs->file->ascii->or(@perl_file_rules);
 	my %options = (follow_symlinks => $self->follow_symlinks);
-	my $iter = $rule->iter("$dir", \%options);
+	my $iter = $rule->iter(@target_dirs, \%options);
 	while (defined(my $file = $iter->())) {
 		my $rewritten = $self->rewrite_version($file, $version, is_trial => $is_trial);
 		if ($self->verbose) {
@@ -135,10 +139,10 @@ sub _check_version {
 }
 
 sub _dist_name {
-	my ($self, $path) = @_;
+	my ($self, $dist_dir) = @_;
 	
 	# Adapted from Dist::Zilla::Plugin::NameFromDirectory
-	my $name = $path->absolute->basename;
+	my $name = $dist_dir->absolute->basename;
 	$name =~ s/(?:^(?:perl|p5)-|[\-\.]pm$)//;
 	print qq{Guessing distribution name is $name\n} if $self->verbose;
 	
@@ -146,14 +150,14 @@ sub _dist_name {
 }
 
 sub _main_module {
-	my ($self, $path) = @_;
+	my ($self, $dist_dir) = @_;
 	
 	# Adapted from Dist::Zilla
 	my $main;
-	(my $guess = $self->_dist_name($path)) =~ s{-}{/}g;
-	$main = $path->child("lib/$guess.pm");
+	(my $guess = $self->_dist_name($dist_dir)) =~ s{-}{/}g;
+	$main = $dist_dir->child("lib/$guess.pm");
 	unless ($main->exists) {
-		$main = path($self->_shortest_module($path));
+		$main = path($self->_shortest_module($dist_dir));
 	}
 	croak qq{Could not find any modules to retrieve version from}
 		unless defined $main and $main->exists;
@@ -163,11 +167,11 @@ sub _main_module {
 }
 
 sub _shortest_module {
-	my ($self, $path) = @_;
-	$path = $path->child('lib');
-	my $rule = Path::Iterator::Rule->new->file->ascii->skip_vcs->perl_module;
+	my ($self, $dist_dir) = @_;
+	my $lib_dir = $dist_dir->child('lib');
+	my $rule = Path::Iterator::Rule->new->skip_vcs->file->ascii->perl_module;
 	my %options = (follow_symlinks => $self->follow_symlinks);
-	return (sort { length $a <=> length $b } $rule->all($path, \%options))[0];
+	return (sort { length $a <=> length $b } $rule->all($lib_dir, \%options))[0];
 }
 
 # this section copied from Dist::Zilla::Plugin::BumpVersionAfterRelease::_Util
@@ -235,7 +239,7 @@ App::RewriteVersion - A tool to rewrite and bump your Perl module versions
  $app->rewrite_versions($app->bump_version($app->current_version));
  
  # Bump versions in specified dist directory
- $app->rewrite_versions($app->bump_version($app->current_version(dir => $dir)), dir => $dir);
+ $app->rewrite_versions($app->bump_version($app->current_version(dist_dir => $dist_dir)), dist_dir => $dist_dir);
  
  # Override module to read version from
  $app->rewrite_versions($app->bump_version($app->current_version(file => $file)));
@@ -330,11 +334,11 @@ thrown if an invalid version is passed according to the current settings.
 =head2 current_version
 
  my $current_version = $app->current_version;
- my $current_version = $app->current_version(dir => $dir);
+ my $current_version = $app->current_version(dist_dir => $dist_dir);
  my $current_version = $app->current_version(file => $file);
 
 Returns the current version of the distribution using L</"version_from">. If no
-C<file> is passed, the main module filename will be guessed from C<dir>
+C<file> is passed, the main module filename will be guessed from C<dist_dir>
 (defaulting to current working directory), using heuristics similar to
 L<Dist::Zilla::Plugin::NameFromDirectory> and L<Dist::Zilla/"main_module">. For
 example, if the directory is named C<Foo-Bar> it will look for
@@ -359,19 +363,23 @@ I/O error occurs.
 =head2 rewrite_versions
 
  $app = $app->rewrite_versions($version);
- $app = $app->rewrite_versions($version, dir => $dir);
+ $app = $app->rewrite_versions($version, dist_dir => $dist_dir);
  $app = $app->rewrite_versions($version, is_trial => 1);
+ $app = $app->rewrite_versions($version, dirs => ['lib']);
 
-Rewrites the versions of all perl files found in C<dir> (defaulting to current
-working directory) to C<$version> using L</"rewrite_version">. If passed,
-the C<is_trial> option is passed through. An exception will be thrown if an
-invalid version is passed, or an I/O error occurs.
+Rewrites the versions of all perl files found in C<dist_dir> (defaulting to
+current working directory) to C<$version> using L</"rewrite_version">. The
+C<dirs> option can be used to specify an arrayref of directories relative to
+C<dist_dir> in which versions will be rewritten, otherwise defaulting to
+C<lib>, C<script>, and C<bin>. If passed, the C<is_trial> option is passed
+through to L</"rewrite_version">. An exception will be thrown if an invalid
+version is passed, or an I/O error occurs.
 
 =head2 version_from
 
- my $version = $app->version_from($path);
+ my $version = $app->version_from($file);
 
-Attempts to read version from the file at C<$path>. Returns C<undef> if no
+Attempts to read version from the file at C<$file>. Returns C<undef> if no
 version assignment was found.
 
 =head1 BUGS
