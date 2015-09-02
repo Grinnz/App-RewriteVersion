@@ -93,7 +93,7 @@ sub rewrite_versions {
 	my $dist_dir = path($params{dist_dir} // '.');
 	my $is_trial = $params{is_trial};
 	my $subdirs = $params{subdirs} // [qw(lib script bin)];
-	my @target_dirs = map { $dist_dir->child($_) } @$subdirs;
+	my @target_dirs = map { $dist_dir->child($_)->stringify } @$subdirs;
 	
 	$self->_check_version($version);
 	
@@ -166,7 +166,7 @@ sub _main_module {
 
 sub _shortest_module {
 	my ($self, $dist_dir) = @_;
-	my $lib_dir = $dist_dir->child('lib');
+	my $lib_dir = $dist_dir->child('lib')->stringify;
 	my $rule = Path::Iterator::Rule->new->skip_vcs->file->ascii->perl_module;
 	my %options = (follow_symlinks => $self->follow_symlinks);
 	return (sort { length $a <=> length $b } $rule->all($lib_dir, \%options))[0];
