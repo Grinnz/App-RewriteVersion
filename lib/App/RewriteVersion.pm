@@ -7,7 +7,7 @@ use Path::Iterator::Rule;
 use Path::Tiny;
 use Version::Next 'next_version';
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 sub new { bless {}, shift }
 
