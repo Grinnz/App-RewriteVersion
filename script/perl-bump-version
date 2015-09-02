@@ -5,7 +5,7 @@ use warnings;
 use App::RewriteVersion;
 use Getopt::Long qw(:config gnu_getopt no_auto_abbrev no_ignore_case auto_help);
 
-our $VERSION = '0.001';
+our $VERSION = '0.002';
 
 GetOptions(
 	'D|dist-dir=s'       => \my $dist_dir,
