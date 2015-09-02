@@ -45,7 +45,7 @@ perl-bump-version - A tool to bump your Perl module versions
    V=v1.0.0 perl-bump-version
 
  Options:
-   -D, --dist-dir               distribution directory to operate on (default: current directory)
+   -D, --dist-dir <dir>         distribution directory to operate on (default: current directory)
    -d, --dry-run                don't actually update files (default: disabled)
    -f, --from <file>            file to read version from
    -g, --global                 rewrite versions globally instead of just the first per file (default: disabled)
@@ -77,7 +77,7 @@ version.
 
 =head1 OPTIONS
 
-=head2 -D, --dist-dir
+=head2 -D, --dist-dir <dir>
 
 Distribution directory to operate on, defaults to current working directory.
 

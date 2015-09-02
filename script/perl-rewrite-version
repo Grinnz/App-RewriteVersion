@@ -45,7 +45,7 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
    V=v1.0.0 perl-rewrite-version
  
  Options:
-   -D, --dist-dir               distribution directory to operate on (default: current directory)
+   -D, --dist-dir <dir>         distribution directory to operate on (default: current directory)
    -d, --dry-run                don't actually update files (default: disabled)
    -f, --from <file>            file to read version from
    -g, --global                 rewrite versions globally instead of just the first per file (default: disabled)
@@ -53,7 +53,7 @@ perl-rewrite-version - A tool to rewrite your Perl module versions
    -t, --trial                  mark version as a trial version (default: disabled)
    -u, --allow-underscore       allow decimal versions with underscores (default: disabled)
    -v, --verbose                print progress messages to STDOUT (default: disabled)
-   -V, --set-version            set version manually instead of from file
+   -V, --set-version <version>  set version manually instead of from file
 
 =head1 DESCRIPTION
 
@@ -78,7 +78,7 @@ across your distribution.
 
 =head1 OPTIONS
 
-=head2 -D, --dist-dir
+=head2 -D, --dist-dir <dir>
 
 Distribution directory to operate on, defaults to current working directory.
 
@@ -118,7 +118,7 @@ for more information.
 
 Print progress output to STDOUT.
 
-=head2 -V, --set-version
+=head2 -V, --set-version <version>
 
 Override the version to use for rewriting, ignoring any existing versions and
 the C<V> environment variable.
