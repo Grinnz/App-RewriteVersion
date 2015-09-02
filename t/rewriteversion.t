@@ -24,6 +24,13 @@ ok $app->follow_symlinks(1)->follow_symlinks, 'option set';
 ok $app->global(1)->global, 'option set';
 ok $app->verbose(1)->verbose, 'option set';
 
+# Clear options
+ok !$app->allow_decimal_underscore(0)->allow_decimal_underscore, 'option set';
+ok !$app->dry_run(0)->dry_run, 'option set';
+ok !$app->follow_symlinks(0)->follow_symlinks, 'option set';
+ok !$app->global(0)->global, 'option set';
+ok !$app->verbose(0)->verbose, 'option set';
+
 $app = App::RewriteVersion->new;
 
 # Bump version
@@ -47,15 +54,23 @@ is $app->bump_version('1.0', sub { $_[0] =~ s/^(\d+)/$1+1/e; $_[0] }), '2.0', 'r
 my $dir = File::Temp->newdir;
 my $dist = path("$dir/Foo-Bar");
 $dist->mkpath;
+
+# No modules to read version from
+ok !eval { $app->current_version(dir => $dist); 1 }, 'no modules found';
+
 path("$dist/lib/Foo")->mkpath;
-my $module = path("$dist/lib/Foo/Bar.pm");
-$module->spew_utf8(qq{package Foo::Bar;\nour \$VERSION = '1.01';\n});
 my $module2 = path("$dist/lib/Foo.pm");
 $module2->spew_utf8(qq{package Foo;\nour \$VERSION = '1.0';\n});
 my $module3 = path("$dist/lib/Foo/Baz.pm");
 $module3->spew_utf8(qq{package Foo::Baz;\n});
 my $module4 = path("$dist/lib/Foo/Foo.pm");
 $module4->spew_utf8(qq{package Foo::Foo;\nour \$VERSION = '1.2_3';\n});
+
+# No main module, use shortest module path
+is $app->current_version(dir => $dist), '1.0', 'right version';
+
+my $module = path("$dist/lib/Foo/Bar.pm");
+$module->spew_utf8(qq{package Foo::Bar;\nour \$VERSION = '1.01';\n});
 
 # Read version
 is $app->version_from($module), '1.01', 'right version';
