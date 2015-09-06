@@ -77,13 +77,13 @@ EOW
         "Dan Book <dbook\@cpan.org>"
       ],
       "dist_name" => "App-RewriteVersion",
-      "dist_version" => "0.001",
+      "dist_version" => "0.002",
       "license" => "artistic_2",
       "module_name" => "App::RewriteVersion",
       "recursive_test_files" => 1,
       "requires" => {
         "Carp" => 0,
-        "Getopt::Long" => "2.32",
+        "Getopt::Long::Modern" => 0,
         "Path::Iterator::Rule" => 0,
         "Path::Tiny" => "0.060",
         "Unicode::UTF8" => "0.58",

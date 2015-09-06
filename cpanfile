@@ -1,6 +1,6 @@
 requires 'perl' => '5.010001';
 requires 'Carp';
-requires 'Getopt::Long' => '2.32';
+requires 'Getopt::Long::Modern';
 requires 'Path::Iterator::Rule';
 requires 'Path::Tiny' => '0.060';
 requires 'Unicode::UTF8' => '0.58';
