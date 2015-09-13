@@ -88,7 +88,8 @@ EOW
         "Path::Tiny" => "0.060",
         "Unicode::UTF8" => "0.58",
         "Version::Next" => 0,
-        "perl" => "5.010001"
+        "perl" => "5.010001",
+        "version" => "0.77"
       },
       "script_files" => [
         "script/perl-bump-version",

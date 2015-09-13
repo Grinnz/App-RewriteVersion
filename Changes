@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.002     2015-09-12 20:10:22 EDT
   - Use Getopt::Long::Modern
   - Add warning when version is rewritten to a lower version
 
