@@ -8,7 +8,7 @@ use Path::Tiny;
 use version ();
 use Version::Next 'next_version';
 
-our $VERSION = '0.002';
+our $VERSION = '0.003';
 
 sub new { bless {}, shift }
 
