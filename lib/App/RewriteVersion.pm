@@ -5,6 +5,7 @@ use warnings;
 use Carp 'croak';
 use Path::Iterator::Rule;
 use Path::Tiny;
+use version ();
 use Version::Next 'next_version';
 
 our $VERSION = '0.002';
@@ -364,7 +365,8 @@ assignment in the form C<our $VERSION = '...';>. Returns true if the version
 was rewritten, or false if no version assignment was found. If C<is_trial> is
 true, C<# TRIAL> will be appended to the version assignment line when
 rewriting. An exception will be thrown if an invalid version is passed, or an
-I/O error occurs.
+I/O error occurs. A warning will be printed if C<$version> is lower than the
+version previously declared in the file.
 
 =head2 rewrite_versions
 
