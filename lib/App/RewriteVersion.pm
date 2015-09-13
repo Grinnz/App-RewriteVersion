@@ -77,8 +77,13 @@ sub rewrite_version {
 		if $version =~ /_/ and scalar($version =~ /\./g) <= 1;
 	
 	my $assign_regex = _assign_re();
+	my $new_version_obj = version->parse($version);
 	if ($self->global ? ($content =~ s{^$assign_regex[^\n]*$}{$code}msg)
 	                  : ($content =~ s{^$assign_regex[^\n]*$}{$code}ms)) {
+		my $old_version_obj = version->parse($2);
+		if ($new_version_obj < $old_version_obj) {
+			warn qq{Updating \$VERSION assignment in "$file" to lower version ($old_version_obj -> $new_version_obj)\n};
+		}
 		$file->append_utf8({truncate => 1}, $content) unless $self->dry_run;
 		return 1;
 	}

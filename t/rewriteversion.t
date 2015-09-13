@@ -84,8 +84,16 @@ ok !eval { $app->current_version(file => $module3); 1 }, 'no version';
 # Rewrite version
 ok $app->rewrite_version($module, '1.20'), 'rewrote version';
 is $app->version_from($module), '1.20', 'right version';
-ok $app->rewrite_version($module, 'v1.2.3'), 'rewrote version';
+
+my $warn = '';
+{
+  open my $handle, '>', \$warn;
+  local *STDERR = $handle;
+  ok $app->rewrite_version($module, 'v1.2.3'), 'rewrote version';
+}
 is $app->version_from($module), 'v1.2.3', 'right version';
+ok length $warn, 'lower version warning';
+
 ok $app->rewrite_version($module, '1.01', is_trial => 1), 'rewrote version';
 is $app->version_from($module), '1.01', 'right version';
 
@@ -100,31 +108,31 @@ ok $app->allow_decimal_underscore(1)->rewrite_version($module, '1.2_3'), 'decima
 $app->allow_decimal_underscore(0);
 
 # Rewrite all versions
-$app->rewrite_versions('1.20', dist_dir => $dist);
-is $app->current_version(dist_dir => $dist), '1.20', 'right version';
-is $app->version_from($module), '1.20', 'right version';
-is $app->version_from($module2), '1.20', 'right version';
+$app->rewrite_versions('1.25', dist_dir => $dist);
+is $app->current_version(dist_dir => $dist), '1.25', 'right version';
+is $app->version_from($module), '1.25', 'right version';
+is $app->version_from($module2), '1.25', 'right version';
 is $app->version_from($module3), undef, 'right version';
-is $app->version_from($module4), '1.20', 'right version';
+is $app->version_from($module4), '1.25', 'right version';
 
-$app->rewrite_versions('v1.2.3', dist_dir => $dist, is_trial => 1);
-is $app->current_version(dist_dir => $dist), 'v1.2.3', 'right version';
-is $app->version_from($module), 'v1.2.3', 'right version';
-is $app->version_from($module2), 'v1.2.3', 'right version';
+$app->rewrite_versions('v2.2.3', dist_dir => $dist, is_trial => 1);
+is $app->current_version(dist_dir => $dist), 'v2.2.3', 'right version';
+is $app->version_from($module), 'v2.2.3', 'right version';
+is $app->version_from($module2), 'v2.2.3', 'right version';
 is $app->version_from($module3), undef, 'right version';
-is $app->version_from($module4), 'v1.2.3', 'right version';
+is $app->version_from($module4), 'v2.2.3', 'right version';
 
 ok !eval { $app->rewrite_versions('1.2.3', dist_dir => $dist); 1 }, 'invalid version';
 ok !eval { $app->rewrite_versions('v1.2', dist_dir => $dist); 1 }, 'invalid version';
 ok !eval { $app->rewrite_versions('v1.2.3_4', dist_dir => $dist); 1 }, 'invalid version';
 
-ok !eval { $app->rewrite_versions('1.2_3', dist_dir => $dist); 1 }, 'decimal underscore version is invalid';
-$app->allow_decimal_underscore(1)->rewrite_versions('1.2_3', dist_dir => $dist);
-is $app->current_version(dist_dir => $dist), '1.2_3', 'right version';
-is $app->version_from($module), '1.2_3', 'right version';
-is $app->version_from($module2), '1.2_3', 'right version';
+ok !eval { $app->rewrite_versions('3.2_3', dist_dir => $dist); 1 }, 'decimal underscore version is invalid';
+$app->allow_decimal_underscore(1)->rewrite_versions('3.2_3', dist_dir => $dist);
+is $app->current_version(dist_dir => $dist), '3.2_3', 'right version';
+is $app->version_from($module), '3.2_3', 'right version';
+is $app->version_from($module2), '3.2_3', 'right version';
 is $app->version_from($module3), undef, 'right version';
-is $app->version_from($module4), '1.2_3', 'right version';
+is $app->version_from($module4), '3.2_3', 'right version';
 $app->allow_decimal_underscore(0);
 
 # Custom directories
@@ -132,16 +140,16 @@ path("$dist/foo")->mkpath;
 my $module5 = path("$dist/foo/module.pm");
 $module5->spew_utf8(qq{our \$VERSION = '1.0';\n});
 
-$app->rewrite_versions('1.23', dist_dir => $dist, subdirs => ['foo']);
-is $app->version_from($module5), '1.23', 'right version';
-is $app->current_version(dist_dir => $dist), '1.2_3', 'version unchanged';
+$app->rewrite_versions('4.23', dist_dir => $dist, subdirs => ['foo']);
+is $app->version_from($module5), '4.23', 'right version';
+is $app->current_version(dist_dir => $dist), '3.2_3', 'version unchanged';
 
 # File contents
-$app->rewrite_versions('v1.2.3', dist_dir => $dist);
-is $app->current_version(dist_dir => $dist), 'v1.2.3', 'right version';
-is $app->version_from($module5), '1.23', 'version unchanged';
+$app->rewrite_versions('v5.2.3', dist_dir => $dist);
+is $app->current_version(dist_dir => $dist), 'v5.2.3', 'right version';
+is $app->version_from($module5), '4.23', 'version unchanged';
 
-my $version_str = quotemeta q{our $VERSION = 'v1.2.3';};
+my $version_str = quotemeta q{our $VERSION = 'v5.2.3';};
 like $module->slurp_utf8, qr/$version_str/, 'contains version string';
 like $module2->slurp_utf8, qr/$version_str/, 'contains version string';
 unlike $module3->slurp_utf8, qr/$version_str/, 'doesnt contain version string';
