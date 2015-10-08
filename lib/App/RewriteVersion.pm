@@ -206,7 +206,7 @@ my $LAX_DOTTED_DECIMAL_VERSION = qr/
 sub _is_strict_version { defined $_[0] && $_[0] =~ qr/\A $STRICT \z /x }
 
 sub _is_loose_version {
-    defined $_[0] && $_[0] =~ qr/\A $STRICT | $LAX_DECIMAL_VERSION \z /x;
+    defined $_[0] && $_[0] =~ qr/\A (?: $STRICT | $LAX_DECIMAL_VERSION ) \z /x;
 }
 
 # Because this is used for *capturing* or *replacing*, we take anything

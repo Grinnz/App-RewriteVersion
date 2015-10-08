@@ -45,6 +45,7 @@ ok !eval { $app->bump_version('v1.2.3_4'); 1 }, 'invalid version';
 
 ok !eval { $app->bump_version('1.0_1'); 1 }, 'decimal underscore version is invalid';
 is $app->allow_decimal_underscore(1)->bump_version('1.0_1'), '1.0_2', 'right version';
+ok !eval { $app->bump_version('v1.2.3_4'); 1 }, 'still invalid';
 $app->allow_decimal_underscore(0);
 
 is $app->bump_version('1.0', sub { '5.0' }), '5.0', 'right version';
@@ -105,6 +106,7 @@ ok !eval { $app->rewrite_version($module, 'v1.2.3_4'); 1 }, 'invalid version';
 # Decimal underscore
 ok !eval { $app->rewrite_version($module, '1.2_3'); 1 }, 'decimal underscore version is invalid';
 ok $app->allow_decimal_underscore(1)->rewrite_version($module, '1.2_3'), 'decimal underscore version is valid';
+ok !eval { $app->rewrite_version('v1.2.3_4'); 1 }, 'still invalid';
 $app->allow_decimal_underscore(0);
 
 # Rewrite all versions
@@ -128,6 +130,7 @@ ok !eval { $app->rewrite_versions('v1.2.3_4', dist_dir => $dist); 1 }, 'invalid 
 
 ok !eval { $app->rewrite_versions('3.2_3', dist_dir => $dist); 1 }, 'decimal underscore version is invalid';
 $app->allow_decimal_underscore(1)->rewrite_versions('3.2_3', dist_dir => $dist);
+ok !eval { $app->rewrite_versions('v1.2.3_4'); 1 }, 'still invalid';
 is $app->current_version(dist_dir => $dist), '3.2_3', 'right version';
 is $app->version_from($module), '3.2_3', 'right version';
 is $app->version_from($module2), '3.2_3', 'right version';
