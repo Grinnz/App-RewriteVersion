@@ -2,6 +2,12 @@ package App::RewriteVersion;
 
 use strict;
 use warnings;
+use Carp 'croak';
+use Path::Iterator::Rule;
+use Path::Tiny;
+use version ();
+use Version::Next 'next_version';
+
 use Class::Tiny::Chained {
 	allow_decimal_underscore => 0,
 	dry_run => 0,
@@ -9,12 +15,6 @@ use Class::Tiny::Chained {
 	global => 0,
 	verbose => 0,
 };
-
-use Carp 'croak';
-use Path::Iterator::Rule;
-use Path::Tiny;
-use version ();
-use Version::Next 'next_version';
 
 our $VERSION = '0.004';
 

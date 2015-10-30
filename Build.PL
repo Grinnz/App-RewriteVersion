@@ -83,6 +83,7 @@ EOW
       "recursive_test_files" => 1,
       "requires" => {
         "Carp" => 0,
+        "Class::Tiny::Chained" => 0,
         "Getopt::Long::Modern" => 0,
         "Path::Iterator::Rule" => 0,
         "Path::Tiny" => "0.060",
