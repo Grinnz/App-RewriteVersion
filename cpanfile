@@ -1,5 +1,6 @@
 requires 'perl' => '5.010001';
 requires 'Carp';
+requires 'Class::Tiny::Chained';
 requires 'Getopt::Long::Modern';
 requires 'Path::Iterator::Rule';
 requires 'Path::Tiny' => '0.060';

@@ -2,6 +2,14 @@ package App::RewriteVersion;
 
 use strict;
 use warnings;
+use Class::Tiny::Chained {
+	allow_decimal_underscore => 0,
+	dry_run => 0,
+	follow_symlinks => 0,
+	global => 0,
+	verbose => 0,
+};
+
 use Carp 'croak';
 use Path::Iterator::Rule;
 use Path::Tiny;
@@ -9,25 +17,6 @@ use version ();
 use Version::Next 'next_version';
 
 our $VERSION = '0.004';
-
-sub new { bless {}, shift }
-
-sub allow_decimal_underscore { shift->_boolean('allow_decimal_underscore', 0, @_) }
-
-sub dry_run { shift->_boolean('dry_run', 0, @_) }
-
-sub follow_symlinks { shift->_boolean('follow_symlinks', 0, @_) }
-
-sub global { shift->_boolean('global', 0, @_) }
-
-sub verbose { shift->_boolean('verbose', 0, @_) }
-
-sub _boolean {
-	my ($self, $attr, $default) = (shift, shift, shift);
-	return $self->{$attr} //= $default unless @_;
-	$self->{$attr} = shift() ? 1 : 0;
-	return $self;
-}
 
 sub bump_version {
 	my $self = shift;

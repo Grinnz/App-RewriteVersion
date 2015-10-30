@@ -4,7 +4,7 @@
       "Dan Book <dbook@cpan.org>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Dist::Zilla version 5.039, CPAN::Meta::Converter version 2.150005",
+   "generated_by" : "Dist::Zilla version 5.040, CPAN::Meta::Converter version 2.150005",
    "license" : [
       "artistic_2"
    ],
@@ -15,12 +15,12 @@
    "name" : "App-RewriteVersion",
    "no_index" : {
       "directory" : [
-         "t",
-         "xt",
+         "eg",
+         "examples",
          "inc",
          "share",
-         "eg",
-         "examples"
+         "t",
+         "xt"
       ]
    },
    "prereqs" : {
@@ -58,7 +58,7 @@
    "provides" : {
       "App::RewriteVersion" : {
          "file" : "lib/App/RewriteVersion.pm",
-         "version" : "0.003"
+         "version" : "0.004"
       }
    },
    "release_status" : "stable",
@@ -73,7 +73,7 @@
          "web" : "https://github.com/Grinnz/App-RewriteVersion"
       }
    },
-   "version" : "0.003",
+   "version" : "0.004",
    "x_contributors" : [
       "Dan Book <grinnz@grinnz.com>"
    ]
