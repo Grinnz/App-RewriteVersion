@@ -18,7 +18,7 @@ if (!grep { $_ } values %errors)
     use strict;
     use warnings;
 
-    use 5.010001;
+    use 5.008001;
     # use Module::Build::Tiny 0.034;
     Module::Build::Tiny::Build_PL();
 }
@@ -96,7 +96,7 @@ EOW
         "Path::Tiny" => "0.060",
         "Unicode::UTF8" => "0.58",
         "Version::Next" => 0,
-        "perl" => "5.010001",
+        "perl" => "5.008001",
         "version" => "0.77"
       },
       "script_files" => [

@@ -19,9 +19,8 @@ use Class::Tiny::Chained {
 our $VERSION = '0.005';
 
 sub bump_version {
-	my $self = shift;
-	my $version = shift // croak qq{Version is required for bump_version};
-	my $bump = shift;
+	my ($self, $version, $bump) = @_;
+	croak qq{Version is required for bump_version} unless defined $version;
 	
 	$self->_check_version($version);
 	
@@ -36,23 +35,23 @@ sub bump_version {
 }
 
 sub current_version {
-	my $self = shift;
-	my %params = @_;
-	my $dist_dir = path($params{dist_dir} // '.');
+	my ($self, %params) = @_;
+	my $dist_dir = path(defined $params{dist_dir} ? $params{dist_dir} : '.');
 	my $version_from = $params{file};
 	
 	return $ENV{V} if defined $ENV{V};
 	
-	$version_from //= $self->_main_module($dist_dir);
-	return $self->version_from($version_from)
-		// croak qq{No version found in file "$version_from"};
+	$version_from = $self->_main_module($dist_dir) unless defined $version_from;
+	my $version = $self->version_from($version_from);
+	croak qq{No version found in file "$version_from"} unless defined $version;
+	return $version;
 }
 
 sub rewrite_version {
-	my $self = shift;
-	my $file = path(shift // croak qq{File to rewrite must be specified for rewrite_version});
-	my $version = shift // croak qq{Version to rewrite must be specified for rewrite_version};
-	my %params = @_;
+	my ($self, $file, $version, %params) = @_;
+	croak qq{File to rewrite must be specified for rewrite_version} unless defined $file;
+	$file = path($file);
+	croak qq{Version to rewrite must be specified for rewrite_version} unless defined $version;
 	my $is_trial = $params{is_trial};
 	
 	$self->_check_version($version);
@@ -64,7 +63,7 @@ sub rewrite_version {
 	$code .= " # TRIAL" if $is_trial;
 	
 	$code .= qq{\n\$VERSION = eval \$VERSION;}
-		if $version =~ /_/ and scalar($version =~ /\./g) <= 1;
+		if $version =~ m/_/ and scalar($version =~ m/\./g) <= 1;
 	
 	my $assign_regex = _assign_re();
 	my $new_version_obj = version->parse($version);
@@ -82,12 +81,11 @@ sub rewrite_version {
 }
 
 sub rewrite_versions {
-	my $self = shift;
-	my $version = shift // croak qq{Version to rewrite must be specified for rewrite_versions};
-	my %params = @_;
-	my $dist_dir = path($params{dist_dir} // '.');
+	my ($self, $version, %params) = @_;
+	croak qq{Version to rewrite must be specified for rewrite_versions} unless defined $version;
+	my $dist_dir = path(defined $params{dist_dir} ? $params{dist_dir} : '.');
 	my $is_trial = $params{is_trial};
-	my $subdirs = $params{subdirs} // [qw(lib script bin)];
+	my $subdirs = defined $params{subdirs} ? $params{subdirs} : [qw(lib script bin)];
 	my @target_dirs = map { $dist_dir->child($_)->stringify } @$subdirs;
 	
 	$self->_check_version($version);
@@ -111,8 +109,9 @@ sub rewrite_versions {
 }
 
 sub version_from {
-	my $self = shift;
-	my $file = path(shift // croak qq{File is required for version_from});
+	my ($self, $file) = @_;
+	croak qq{File is required for version_from} unless defined $file;
+	$file = path($file);
 	
 	return undef unless -T $file;
 	my $content = $file->slurp_utf8;

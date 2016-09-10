@@ -45,7 +45,7 @@
             "Path::Tiny" : "0.060",
             "Unicode::UTF8" : "0.58",
             "Version::Next" : "0",
-            "perl" : "5.010001",
+            "perl" : "5.008001",
             "version" : "0.77"
          }
       },

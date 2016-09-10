@@ -1,4 +1,4 @@
-requires 'perl' => '5.010001';
+requires 'perl' => '5.008001';
 requires 'Carp';
 requires 'Class::Tiny::Chained';
 requires 'Getopt::Long::Modern';
