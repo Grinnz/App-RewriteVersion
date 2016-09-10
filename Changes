@@ -1,4 +1,6 @@
 {{$NEXT}}
+
+0.005     2016-09-10 16:33:08 EDT
   - Lower perl version requirement to 5.8.1
   - Move Unicode::UTF8 to recommends
 
