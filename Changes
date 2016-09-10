@@ -1,4 +1,6 @@
 {{$NEXT}}
+  - Lower perl version requirement to 5.8.1
+  - Move Unicode::UTF8 to recommends
 
 0.004     2015-10-30 12:38:37 EDT
   - Use Class::Tiny::Chained

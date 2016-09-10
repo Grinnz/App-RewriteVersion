@@ -87,6 +87,9 @@ EOW
       "dist_version" => "0.005",
       "license" => "artistic_2",
       "module_name" => "App::RewriteVersion",
+      "recommends" => {
+        "Unicode::UTF8" => "0.58"
+      },
       "recursive_test_files" => 1,
       "requires" => {
         "Carp" => 0,
@@ -94,7 +97,6 @@ EOW
         "Getopt::Long::Modern" => 0,
         "Path::Iterator::Rule" => 0,
         "Path::Tiny" => "0.060",
-        "Unicode::UTF8" => "0.58",
         "Version::Next" => 0,
         "perl" => "5.008001",
         "version" => "0.77"
