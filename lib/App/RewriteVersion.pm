@@ -16,7 +16,7 @@ use Class::Tiny::Chained {
 	verbose => 0,
 };
 
-our $VERSION = '0.006';
+our $VERSION = '0.007';
 
 sub bump_version {
 	my ($self, $version, $bump) = @_;
