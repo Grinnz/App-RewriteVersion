@@ -106,7 +106,10 @@ rewrite.
 
 =head2 -t, --trial
 
-Mark version assignment as a trial release.
+Mark version assignment as a trial release. This will only add a C<# TRIAL>
+comment to the version assignment, as the C<-TRIAL> indication is not part of
+the version and should be added to the name of the archive you upload to PAUSE,
+which is outside of the scope of this tool.
 
 =head2 -u, --allow-underscore
 

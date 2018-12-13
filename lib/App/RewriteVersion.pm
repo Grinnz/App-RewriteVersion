@@ -354,9 +354,11 @@ Rewrites the version of the file at C<$file> to C<$version> if it has a version
 assignment in the form C<our $VERSION = '...';>. Returns true if the version
 was rewritten, or false if no version assignment was found. If C<is_trial> is
 true, C<# TRIAL> will be appended to the version assignment line when
-rewriting. An exception will be thrown if an invalid version is passed, or an
-I/O error occurs. A warning will be printed if C<$version> is lower than the
-version previously declared in the file.
+rewriting. The C<-TRIAL> indication is not part of the version and should be
+added to the name of the archive you upload to PAUSE, which is outside of the
+scope of this tool. An exception will be thrown if an invalid version is
+passed, or an I/O error occurs. A warning will be printed if C<$version> is
+lower than the version previously declared in the file.
 
 =head2 rewrite_versions
 
