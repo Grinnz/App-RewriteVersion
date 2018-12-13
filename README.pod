@@ -55,9 +55,9 @@ command-line usage.
 =head2 allow_decimal_underscore
 
  my $bool = $app->allow_decimal_underscore;
- $app = $app->allow_decimal_underscore(1);
+ $app = $app->allow_decimal_underscore(0);
 
-If true, decimal versions with underscores will be allowed. Defaults to false.
+If true, decimal versions with underscores will be allowed. Defaults to true.
 See L<Dist::Zilla::Plugin::BumpVersionAfterRelease/"Using underscore in decimal $VERSION">
 for more information.
 
