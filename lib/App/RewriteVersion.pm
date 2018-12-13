@@ -9,14 +9,14 @@ use version ();
 use Version::Next 'next_version';
 
 use Class::Tiny::Chained {
-	allow_decimal_underscore => 0,
+	allow_decimal_underscore => 1,
 	dry_run => 0,
 	follow_symlinks => 0,
 	global => 0,
 	verbose => 0,
 };
 
-our $VERSION = '0.007';
+our $VERSION = '1.000';
 
 sub bump_version {
 	my ($self, $version, $bump) = @_;
